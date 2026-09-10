@@ -1,0 +1,19 @@
+{
+  "name": "weather-digest",
+  "version": "1.0.0",
+  "description": "Консольная утилита «Погодный дайджест» — прогноз погоды из Open-Meteo",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js --help"
+  },
+  "keywords": [
+    "weather",
+    "open-meteo",
+    "cli",
+    "nodejs"
+  ],
+  "license": "MIT"
+}
