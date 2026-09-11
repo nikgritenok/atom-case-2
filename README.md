@@ -111,7 +111,17 @@ Dockerfile            # (бонус)
 
 ## Бонус
 
-- `docker build -t weather-digest .` + `docker run`
+### Docker
+
+```bash
+docker build -t weather-digest .
+docker run --rm weather-digest --help
+docker run --rm -e REQUEST_TIMEOUT_MS=5000 weather-digest --city "Москва" --days 2
+docker run --rm -e REPORTS_DIR=/tmp/reports weather-digest --city "Казань" --days 1
+```
+
+Параметры передаются через переменные окружения (`-e`).
+
 - `npm run lint`, `npm run format:check`
 - `public/index.html` — просмотр JSON-отчёта через DOM API
 - `npm test` — парсинг daily + ошибки
