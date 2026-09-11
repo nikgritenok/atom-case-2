@@ -1,0 +1,52 @@
+{
+  "info": {
+    "name": "Weather Digest — Open-Meteo",
+    "description": "Коллекция для Кейса 1: геокодинг + прогноз. Переменные: baseUrl вынесены в переменные коллекции.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "geocodingBaseUrl", "value": "https://geocoding-api.open-meteo.com/v1/search" },
+    { "key": "forecastBaseUrl", "value": "https://api.open-meteo.com/v1/forecast" },
+    { "key": "city", "value": "Нижний Новгород" },
+    { "key": "lat", "value": "56.32" },
+    { "key": "lon", "value": "44.0" },
+    { "key": "days", "value": "3" }
+  ],
+  "item": [
+    {
+      "name": "1. Geocoding — координаты по городу",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{geocodingBaseUrl}}?name={{city}}&count=1&language=ru&format=json",
+          "host": ["{{geocodingBaseUrl}}"],
+          "query": [
+            { "key": "name", "value": "{{city}}" },
+            { "key": "count", "value": "1" },
+            { "key": "language", "value": "ru" },
+            { "key": "format", "value": "json" }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Forecast — прогноз по координатам",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{forecastBaseUrl}}?latitude={{lat}}&longitude={{lon}}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&forecast_days={{days}}&timezone=auto",
+          "host": ["{{forecastBaseUrl}}"],
+          "query": [
+            { "key": "latitude", "value": "{{lat}}" },
+            { "key": "longitude", "value": "{{lon}}" },
+            { "key": "daily", "value": "temperature_2m_max,temperature_2m_min,precipitation_sum" },
+            { "key": "forecast_days", "value": "{{days}}" },
+            { "key": "timezone", "value": "auto" }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
