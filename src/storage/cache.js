@@ -7,10 +7,13 @@ function todayStr() {
 }
 
 function safeFileName(city) {
-  return city
-    .trim()
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
-    .slice(0, 100);
+  return (
+    city
+      .trim()
+      // eslint-disable-next-line no-control-regex -- санитизация имён файлов
+      .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+      .slice(0, 100)
+  );
 }
 
 export function reportPath(city, date = todayStr()) {

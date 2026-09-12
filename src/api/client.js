@@ -11,7 +11,10 @@ import {
  * fetch с таймаутом через AbortController.
  * URL собирается через URL/URLSearchParams (см. ниже).
  */
-export async function fetchJson(url, { timeoutMs = config.requestTimeoutMs } = {}) {
+export async function fetchJson(
+  url,
+  { timeoutMs = config.requestTimeoutMs } = {}
+) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 

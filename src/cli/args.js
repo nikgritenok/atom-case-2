@@ -33,7 +33,9 @@ export function parseArgs(argv) {
     if (arg === '--city') {
       const value = args[i + 1];
       if (value === undefined || value.startsWith('--')) {
-        throw new CliError('Параметр --city требует значение. Пример: --city "Москва"');
+        throw new CliError(
+          'Параметр --city требует значение. Пример: --city "Москва"'
+        );
       }
       result.cities = value
         .split(',')
