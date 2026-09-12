@@ -123,5 +123,5 @@ docker run --rm -e REPORTS_DIR=/tmp/reports weather-digest --city "Казань"
 Параметры передаются через переменные окружения (`-e`).
 
 - `npm run lint`, `npm run format:check`
-- `public/index.html` — просмотр JSON-отчёта через DOM API
+- `public/index.html` — просмотр JSON-отчёта через DOM API. Откройте файл в браузере, выберите JSON из `reports/`.
 - `npm test` — парсинг daily + ошибки
