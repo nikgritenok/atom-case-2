@@ -15,7 +15,9 @@ export function printReports(report) {
     'Осадки, мм': d.precipitation,
   }));
   console.table(rows);
-  console.log(`Отчёт: reports/${report.requestedCity}-${report.fetchedAt.slice(0, 10)}.json`);
+  console.log(
+    `Отчёт: reports/${report.requestedCity}-${report.fetchedAt.slice(0, 10)}.json`
+  );
 }
 
 export function printCityError(city, error) {
