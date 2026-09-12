@@ -7,7 +7,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "start": "node src/index.js --help"
+    "start": "node src/index.js --help",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "format": "prettier --write ."
   },
   "keywords": [
     "weather",
@@ -15,5 +18,9 @@
     "cli",
     "nodejs"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^10.10.0",
+    "prettier": "^3.9.6"
+  }
 }
