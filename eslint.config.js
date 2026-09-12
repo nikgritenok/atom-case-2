@@ -23,6 +23,14 @@ export default [
     },
   },
   {
+    files: ['public/**/*.js'],
+    languageOptions: {
+      globals: {
+        document: 'readonly',
+      },
+    },
+  },
+  {
     files: ['tests/**/*.js'],
     languageOptions: {
       globals: {
