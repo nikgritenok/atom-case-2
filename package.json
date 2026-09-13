@@ -10,7 +10,8 @@
     "start": "node src/index.js --help",
     "lint": "eslint .",
     "format:check": "prettier --check .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "node --test tests/"
   },
   "keywords": [
     "weather",
