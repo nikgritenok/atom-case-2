@@ -29,8 +29,14 @@ describe('CLI-валидация — ошибочные сценарии', () =>
   });
 
   it('отклоняет --days вне 1–7', () => {
-    assert.throws(() => parseArgs(['node', 'index.js', '--city', 'М', '--days', '0']), CliError);
-    assert.throws(() => parseArgs(['node', 'index.js', '--city', 'М', '--days', '8']), CliError);
+    assert.throws(
+      () => parseArgs(['node', 'index.js', '--city', 'М', '--days', '0']),
+      CliError
+    );
+    assert.throws(
+      () => parseArgs(['node', 'index.js', '--city', 'М', '--days', '8']),
+      CliError
+    );
   });
 
   it('принимает список через запятую и --no-cache', () => {

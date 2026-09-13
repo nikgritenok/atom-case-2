@@ -26,7 +26,14 @@ describe('mapDailyToDays — разбор ответа API', () => {
 describe('pickGeoResult — город не найден', () => {
   it('возвращает первый результат', () => {
     const data = {
-      results: [{ name: 'Казань', country: 'Россия', latitude: 55.79, longitude: 49.12 }],
+      results: [
+        {
+          name: 'Казань',
+          country: 'Россия',
+          latitude: 55.79,
+          longitude: 49.12,
+        },
+      ],
     };
     assert.deepEqual(pickGeoResult(data, 'Казань'), {
       name: 'Казань',
@@ -38,6 +45,9 @@ describe('pickGeoResult — город не найден', () => {
 
   it('бросает CityNotFoundError на пустом results', () => {
     assert.throws(() => pickGeoResult({}, 'XYZ'), CityNotFoundError);
-    assert.throws(() => pickGeoResult({ results: [] }, 'XYZ'), CityNotFoundError);
+    assert.throws(
+      () => pickGeoResult({ results: [] }, 'XYZ'),
+      CityNotFoundError
+    );
   });
 });
