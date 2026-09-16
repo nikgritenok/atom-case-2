@@ -7,6 +7,7 @@ import {
   equipmentListQuery,
 } from '../validators/equipment.js';
 import * as controller from '../controllers/equipment.js';
+import { byEquipment } from '../controllers/equipmentRequests.js';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.patch(
   controller.update
 );
 router.delete('/:id', validate(idParam, 'params'), controller.remove);
+router.get('/:id/requests', validate(idParam, 'params'), byEquipment);
 
 export default router;
