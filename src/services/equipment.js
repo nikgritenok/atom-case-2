@@ -20,6 +20,10 @@ export async function listEquipment(query) {
 
   if (query.type) items = items.filter((e) => e.type === query.type);
   if (query.status) items = items.filter((e) => e.status === query.status);
+  if (query.search) {
+    const needle = query.search.toLowerCase();
+    items = items.filter((e) => e.name.toLowerCase().includes(needle));
+  }
 
   const sortBy = ALLOWED_SORT.includes(query.sortBy)
     ? query.sortBy
