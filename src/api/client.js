@@ -1,4 +1,4 @@
-import { config } from '../config.js';
+import { config } from '../config/index.js';
 import {
   HttpError,
   TimeoutError,
@@ -73,7 +73,7 @@ export function pickGeoResult(data, city) {
   const r = results[0];
   return {
     name: r.name,
-    country: r.country ?? '—',
+    country: r.country ?? '-',
     latitude: r.latitude,
     longitude: r.longitude,
   };
