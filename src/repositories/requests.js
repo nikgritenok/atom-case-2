@@ -16,6 +16,15 @@ export async function findRequestsByEquipment(equipmentId) {
   return db.requests.filter((r) => r.equipmentId === equipmentId);
 }
 
+export async function findOpenRequestsByEquipment(equipmentId) {
+  const db = await loadDb();
+  return db.requests.filter(
+    (r) =>
+      r.equipmentId === equipmentId &&
+      (r.status === 'new' || r.status === 'in_progress')
+  );
+}
+
 export async function createRequest(data) {
   const db = await loadDb();
   const now = new Date().toISOString();
