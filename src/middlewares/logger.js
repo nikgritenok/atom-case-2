@@ -12,4 +12,7 @@ export const httpLogger = pinoHttp({
     if (res.statusCode >= 400) return 'warn';
     return 'info';
   },
+  customSuccessMessage(req, res) {
+    return `${req.method} ${req.url} ${res.statusCode}`;
+  },
 });
