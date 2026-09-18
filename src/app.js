@@ -12,6 +12,7 @@ import helmet from 'helmet';
 
 export function buildApp() {
   const app = express();
+  app.disable('x-powered-by');
 
   app.use(httpLogger);
   app.use(express.json({ limit: config.bodyLimit }));
