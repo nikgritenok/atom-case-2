@@ -1,0 +1,8 @@
+{
+  "name": "Локальное окружение",
+  "values": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "enabled": true },
+    { "key": "equipmentId", "value": "", "enabled": true },
+    { "key": "requestId", "value": "", "enabled": true }
+  ]
+}

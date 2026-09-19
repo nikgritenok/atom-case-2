@@ -43,7 +43,5 @@ export function isWorkAllowed(forecast) {
   const wind = forecast?.daily?.wind_speed_10m_max ?? [99];
   const maxPrecip = Math.max(...precip.slice(0, 2));
   const maxWind = Math.max(...wind.slice(0, 2));
-  return (
-    maxPrecip <= config.precipThreshold && maxWind <= config.windThreshold
-  );
+  return maxPrecip <= config.precipThreshold && maxWind <= config.windThreshold;
 }
