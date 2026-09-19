@@ -1,140 +1,361 @@
 {
   "info": {
-    "name": "Weather Digest — Open-Meteo",
-    "description": "Коллекция для Кейса 1: геокодинг + прогноз. Переменные: baseUrl вынесены в переменные коллекции.",
+    "name": "Сервис заявок",
+    "description": "Коллекция для проверки сервиса учета заявок. Переменные baseUrl, equipmentId и requestId пробрасываются между запросами.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {
-      "key": "geocodingBaseUrl",
-      "value": "https://geocoding-api.open-meteo.com/v1/search"
-    },
-    {
-      "key": "forecastBaseUrl",
-      "value": "https://api.open-meteo.com/v1/forecast"
-    },
-    { "key": "city", "value": "Нижний Новгород" },
-    { "key": "lat", "value": "56.32" },
-    { "key": "lon", "value": "44.0" },
-    { "key": "days", "value": "3" }
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "equipmentId", "value": "" },
+    { "key": "requestId", "value": "" }
   ],
   "item": [
     {
-      "name": "1. Geocoding — координаты по городу",
-      "request": {
-        "method": "GET",
-        "url": {
-          "raw": "{{geocodingBaseUrl}}?name={{city}}&count=1&language=ru&format=json",
-          "host": ["{{geocodingBaseUrl}}"],
-          "query": [
-            { "key": "name", "value": "{{city}}" },
-            { "key": "count", "value": "1" },
-            { "key": "language", "value": "ru" },
-            { "key": "format", "value": "json" }
+      "name": "health",
+      "item": [
+        {
+          "name": "Проверка сервиса",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/health", "host": ["{{baseUrl}}"], "path": ["api", "health"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Есть статус ok', function () { var j = pm.response.json(); pm.expect(j.data.status).to.eql('ok'); });"
+                ]
+              }
+            }
           ]
-        }
-      },
-      "response": [
-        {
-          "name": "Успех 200 — город найден",
-          "originalRequest": {
-            "method": "GET",
-            "url": {
-              "raw": "https://geocoding-api.open-meteo.com/v1/search?name=Нижний Новгород&count=1&language=ru&format=json",
-              "host": ["https://geocoding-api.open-meteo.com/v1/search"],
-              "query": [
-                { "key": "name", "value": "Нижний Новгород" },
-                { "key": "count", "value": "1" },
-                { "key": "language", "value": "ru" },
-                { "key": "format", "value": "json" }
-              ]
-            }
-          },
-          "status": "OK",
-          "code": 200,
-          "body": "{\"results\":[{\"id\":520555,\"name\":\"Нижний Новгород\",\"latitude\":56.32867,\"longitude\":44.00205,\"country\":\"Россия\",\"admin1\":\"Нижегородская Область\"}]}"
-        },
-        {
-          "name": "Город не найден 200 — пустой results",
-          "originalRequest": {
-            "method": "GET",
-            "url": {
-              "raw": "https://geocoding-api.open-meteo.com/v1/search?name=XYZ123NoSuchCity&count=1&language=ru&format=json",
-              "host": ["https://geocoding-api.open-meteo.com/v1/search"],
-              "query": [
-                { "key": "name", "value": "XYZ123NoSuchCity" },
-                { "key": "count", "value": "1" },
-                { "key": "language", "value": "ru" },
-                { "key": "format", "value": "json" }
-              ]
-            }
-          },
-          "status": "OK",
-          "code": 200,
-          "body": "{\"generationtime_ms\":0.06496906}"
         }
       ]
     },
     {
-      "name": "2. Forecast — прогноз по координатам",
-      "request": {
-        "method": "GET",
-        "url": {
-          "raw": "{{forecastBaseUrl}}?latitude={{lat}}&longitude={{lon}}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&forecast_days={{days}}&timezone=auto",
-          "host": ["{{forecastBaseUrl}}"],
-          "query": [
-            { "key": "latitude", "value": "{{lat}}" },
-            { "key": "longitude", "value": "{{lon}}" },
-            {
-              "key": "daily",
-              "value": "temperature_2m_max,temperature_2m_min,precipitation_sum"
-            },
-            { "key": "forecast_days", "value": "{{days}}" },
-            { "key": "timezone", "value": "auto" }
-          ]
-        }
-      },
-      "response": [
+      "name": "equipment",
+      "item": [
         {
-          "name": "Успех 200 — прогноз",
-          "originalRequest": {
-            "method": "GET",
-            "url": {
-              "raw": "https://api.open-meteo.com/v1/forecast?latitude=56.32&longitude=44.0&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&forecast_days=1&timezone=auto",
-              "host": ["https://api.open-meteo.com/v1/forecast"],
-              "query": [
-                { "key": "latitude", "value": "56.32" },
-                { "key": "longitude", "value": "44.0" },
-                {
-                  "key": "daily",
-                  "value": "temperature_2m_max,temperature_2m_min,precipitation_sum"
-                },
-                { "key": "forecast_days", "value": "1" },
-                { "key": "timezone", "value": "auto" }
-              ]
-            }
+          "name": "Создать оборудование",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Турбина Северная\",\"type\":\"turbine\",\"serialNumber\":\"SN-100\",\"location\":{\"lat\":55.7,\"lon\":37.6},\"status\":\"operational\",\"installedAt\":\"2024-05-10T00:00:00.000Z\"}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/equipment", "host": ["{{baseUrl}}"], "path": ["api", "equipment"] }
           },
-          "status": "OK",
-          "code": 200,
-          "body": "{\"latitude\":56.31,\"longitude\":44.0,\"timezone\":\"Europe/Moscow\",\"daily\":{\"time\":[\"2026-09-13\"],\"temperature_2m_max\":[16.2],\"temperature_2m_min\":[7.7],\"precipitation_sum\":[0.0]}}"
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Есть id', function () { var j = pm.response.json(); pm.expect(j.data.id).to.be.a('string'); pm.collectionVariables.set('equipmentId', j.data.id); });"
+                ]
+              }
+            }
+          ]
         },
         {
-          "name": "Ошибка 400 — некорректные координаты",
-          "originalRequest": {
+          "name": "Список оборудования",
+          "request": {
             "method": "GET",
             "url": {
-              "raw": "https://api.open-meteo.com/v1/forecast?latitude=9999&longitude=9999&forecast_days=1",
-              "host": ["https://api.open-meteo.com/v1/forecast"],
-              "query": [
-                { "key": "latitude", "value": "9999" },
-                { "key": "longitude", "value": "9999" },
-                { "key": "forecast_days", "value": "1" }
-              ]
+              "raw": "{{baseUrl}}/api/equipment?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment"],
+              "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }]
             }
           },
-          "status": "Bad Request",
-          "code": 400,
-          "body": "{\"error\":true,\"reason\":\"Latitude must be in range of -90 to 90°. Given: 9999.0.\"}"
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Есть мета', function () { var j = pm.response.json(); pm.expect(j.meta.total).to.be.a('number'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Карточка оборудования",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "{{equipmentId}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Обновить оборудование",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"status\":\"maintenance\"}" },
+            "url": { "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "{{equipmentId}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Заявки по объекту",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}/requests", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "{{equipmentId}}", "requests"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Погода по объекту",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}/weather", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "{{equipmentId}}", "weather"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 200 или 502', function () { pm.expect([200, 502]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Дубль серийника 409",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Турбина Двойник\",\"type\":\"turbine\",\"serialNumber\":\"SN-100\",\"location\":{\"lat\":55.7,\"lon\":37.6},\"status\":\"operational\",\"installedAt\":\"2024-05-10T00:00:00.000Z\"}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/equipment", "host": ["{{baseUrl}}"], "path": ["api", "equipment"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 409', function () { pm.response.to.have.status(409); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Битое тело 422",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"12\"}" },
+            "url": { "raw": "{{baseUrl}}/api/equipment", "host": ["{{baseUrl}}"], "path": ["api", "equipment"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 422', function () { pm.response.to.have.status(422); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Чужой id 404",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/equipment/00000000-0000-4000-8000-000000000000", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "00000000-0000-4000-8000-000000000000"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 404', function () { pm.response.to.have.status(404); });"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "requests",
+      "item": [
+        {
+          "name": "Создать заявку",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"equipmentId\":\"{{equipmentId}}\",\"title\":\"Проверка подшипника\",\"description\":\"Шум при вращении\",\"priority\":\"high\"}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/requests", "host": ["{{baseUrl}}"], "path": ["api", "requests"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Сохранить id', function () { var j = pm.response.json(); pm.collectionVariables.set('requestId', j.data.id); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Список заявок",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/requests?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "requests"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Карточка заявки",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/requests/{{requestId}}", "host": ["{{baseUrl}}"], "path": ["api", "requests", "{{requestId}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Править заявку",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"priority\":\"critical\"}" },
+            "url": { "raw": "{{baseUrl}}/api/requests/{{requestId}}", "host": ["{{baseUrl}}"], "path": ["api", "requests", "{{requestId}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Статус в работу",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"status\":\"in_progress\"}" },
+            "url": { "raw": "{{baseUrl}}/api/requests/{{requestId}}/status", "host": ["{{baseUrl}}"], "path": ["api", "requests", "{{requestId}}", "status"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Левый переход 409",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"status\":\"new\"}" },
+            "url": { "raw": "{{baseUrl}}/api/requests/{{requestId}}/status", "host": ["{{baseUrl}}"], "path": ["api", "requests", "{{requestId}}", "status"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 409', function () { pm.response.to.have.status(409); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Заявка на чужое оборудование 404",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"equipmentId\":\"00000000-0000-4000-8000-000000000000\",\"title\":\"Проверка чужого узла\",\"priority\":\"low\"}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/requests", "host": ["{{baseUrl}}"], "path": ["api", "requests"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 404', function () { pm.response.to.have.status(404); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Удалить заявку",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/requests/{{requestId}}", "host": ["{{baseUrl}}"], "path": ["api", "requests", "{{requestId}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 204', function () { pm.response.to.have.status(204); });"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Удалить оборудование",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "{{equipmentId}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Код 204', function () { pm.response.to.have.status(204); });"]
+              }
+            }
+          ]
         }
       ]
     }
