@@ -1,127 +1,145 @@
-# Погодный дайджест
+# Сервис учета заявок на обслуживание оборудования
 
-Консольная утилита на Node.js для работы с внешним REST API (Open-Meteo).
-Принимает город или список городов, получает прогноз погоды, выводит таблицу в терминал и сохраняет отчёт в `reports/{город}-{ГГГГ-ММ-ДД}.json`.
+Сервис ведет справочник оборудования производственной площадки и заявки на его обслуживание. Контролирует жизненный цикл заявки и показывает погоду на объекте перед наружными работами.
 
-## Требования к окружению
+## Требования
 
-- Node.js >= 20 (встроенный `fetch`)
+- Node.js 20 и выше
 - npm
-- Доступ в интернет к `open-meteo.com`
+- Доступ в интернет для прогноза через Open-Meteo
 
-## Установка
+## Установка и запуск
 
 ```bash
-git clone <repo-url>
-cd weather-digest
+git clone https://github.com/nikgritenok/atom-case-2.git
+cd atom-case-2
 npm install
 cp .env.example .env
+npm run dev
+```
+
+Проверка:
+
+```bash
+curl http://localhost:3000/api/health
+npm test
+postman collection run docs/postman/collection.json -e docs/postman/environment.json
+```
+
+Через Docker:
+
+```bash
+docker build -t maintenance-service .
+docker run --rm -p 3000:3000 --env-file .env maintenance-service
+docker compose up --build
 ```
 
 ## Переменные окружения
 
-| Переменная           | По умолчанию                                     | Описание                                |
-| -------------------- | ------------------------------------------------ | --------------------------------------- |
-| `GEOCODING_BASE_URL` | `https://geocoding-api.open-meteo.com/v1/search` | Геокодинг                               |
-| `FORECAST_BASE_URL`  | `https://api.open-meteo.com/v1/forecast`         | Прогноз                                 |
-| `REQUEST_TIMEOUT_MS` | `5000`                                           | Таймаут запроса, мс (`AbortController`) |
-| `REPORTS_DIR`        | `reports`                                        | Каталог отчётов                         |
+| Переменная | Пример | Назначение |
+| --- | --- | --- |
+| PORT | 3000 | Порт сервиса |
+| NODE_ENV | development | Режим работы |
+| CORS_ORIGINS | http://localhost:3000,http://localhost:5173 | Разрешенные источники |
+| RATE_LIMIT_WINDOW_MS | 60000 | Окно лимита запросов |
+| RATE_LIMIT_MAX | 100 | Максимум запросов в окне |
+| WEATHER_API_URL | https://api.open-meteo.com/v1/forecast | Прогноз погоды |
+| REQUEST_TIMEOUT_MS | 5000 | Таймаут внешнего запроса |
+| WIND_THRESHOLD_MS | 10 | Порог ветра для работ |
+| PRECIP_THRESHOLD_MM | 0.5 | Порог осадков для работ |
+| BODY_LIMIT | 100kb | Лимит тела запроса |
+| DB_PATH | data/db.json | Путь к файлу базы |
 
-`.env` в git не коммитится, пример — в `.env.example`.
+## Эндпоинты
 
-## Запуск
+| Метод | Путь | Назначение |
+| --- | --- | --- |
+| GET | /api/health | Проверка сервиса |
+| GET | /api/equipment | Список оборудования |
+| POST | /api/equipment | Создать оборудование |
+| GET | /api/equipment/:id | Карточка оборудования |
+| PATCH | /api/equipment/:id | Обновить оборудование |
+| DELETE | /api/equipment/:id | Удалить оборудование |
+| GET | /api/equipment/:id/requests | Заявки по объекту |
+| GET | /api/equipment/:id/weather | Прогноз и пригодность окна |
+| GET | /api/requests | Список заявок |
+| POST | /api/requests | Создать заявку |
+| GET | /api/requests/:id | Карточка заявки |
+| PATCH | /api/requests/:id | Править заявку |
+| PATCH | /api/requests/:id/status | Сменить статус |
+| DELETE | /api/requests/:id | Удалить заявку |
+
+Списки принимают фильтры, сортировку и пагинацию. Ответ списка содержит данные и мету total, page и limit.
+
+## Модель данных
+
+Оборудование: id, name от 3 до 100 символов, type turbine/inverter/sensor/substation, уникальный serialNumber, location с lat и lon, status operational/maintenance/fault/decommissioned, installedAt не в будущем.
+
+Заявка: id, equipmentId, title от 5 до 120 символов, description до 2000 символов, priority low/medium/high/critical, status new/in_progress/done/rejected, plannedAt, createdAt и updatedAt от сервера.
+
+Переходы статуса: new идет в in_progress или rejected, in_progress идет в done или rejected. Из done и rejected переходов нет. Левый переход дает 409.
+
+## Формат ошибки
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Некорректные данные запроса",
+    "details": [{ "field": "priority", "message": "Недопустимый приоритет" }],
+    "requestId": "b1f2c3d4"
+  }
+}
+```
+
+## Примеры
+
+Создание оборудования:
 
 ```bash
-# один город, 3 дня по умолчанию
-node src/index.js --city "Нижний Новгород"
-
-# явно дни 1–7
-node src/index.js --city "Нижний Новгород" --days 3
-
-# несколько городов через запятую (параллельно)
-node src/index.js --city "Москва, Казань" --days 2
-
-# игнорировать кэш
-node src/index.js --city "Москва" --days 2 --no-cache
-
-# справка
-node src/index.js --help
-
-# через npm
-npm start -- --city "Москва" --days 2
+curl -X POST http://localhost:3000/api/equipment \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Турбина Северная","type":"turbine","serialNumber":"SN-100","location":{"lat":55.7,"lon":37.6},"status":"operational","installedAt":"2024-05-10T00:00:00.000Z"}'
 ```
 
-## Пример вывода
+Дубль серийника дает 409:
 
-```text
-Москва, Россия
-Координаты: 55.75204, 37.61781
-Прогноз на 2 дн.:
-┌─────────┬──────────────┬────────┬─────────┬────────────┐
-│ (index) │ Дата         │ Мин °C │ Макс °C │ Осадки, мм │
-├─────────┼──────────────┼────────┼─────────┼────────────┤
-│ 0       │ '2026-09-13' │ 7.7    │ 16.2    │ 0          │
-│ 1       │ '2026-09-14' │ 9.2    │ 18.4    │ 0          │
-└─────────┴──────────────┴─────────┴─────────┴────────────┘
-Отчёт: reports/Москва-2026-09-13.json
+```json
+{
+  "error": {
+    "code": "CONFLICT",
+    "message": "Серийный номер уже занят",
+    "details": [],
+    "requestId": "abc123"
+  }
+}
 ```
 
-Повторный запуск за тот же день берёт данные из файла без сети (`(из кэша)`).
+Битое тело дает 422 со списком полей.
 
-## Ошибки и коды выхода
+## Погода
 
-| Ситуация                        | Сообщение                                     | Exit |
-| ------------------------------- | --------------------------------------------- | ---- |
-| Нет `--city` / неизвестный флаг | `Ошибка: Параметр --city обязателен...`       | 1    |
-| `--days` не 1–7                 | `Ошибка: Некорректное значение --days...`     | 1    |
-| Город не найден                 | `Ошибка (Город): Город не найден...`          | 1    |
-| HTTP 4xx                        | `Ошибка ...: Ошибка запроса API: HTTP 4xx...` | 1    |
-| HTTP 5xx                        | `Ошибка ...: Ошибка сервера API: HTTP 5xx...` | 1    |
-| Нет сети                        | `Ошибка ...: Нет доступа к сети...`           | 1    |
-| Таймаут                         | `Ошибка ...: Превышен таймаут...`             | 1    |
-| Битый JSON                      | `Ошибка ...: API вернул некорректный JSON...` | 1    |
-| Успех (все города)              | таблица + файл                                | 0    |
-| Частичный успех                 | успешные показаны, ошибки — в stderr          | 1    |
+Эндпоинт берет координаты оборудования и запрашивает Open-Meteo через модуль из первого кейса. Возвращает осадки и ветер на два дня плюс признак suitable. Окно пригодно если осадки не выше PRECIP_THRESHOLD_MM и ветер не выше WIND_THRESHOLD_MS. Если внешний сервис лег, вернется 502 с понятным текстом.
 
-Стек-трейс пользователю не показывается. `unhandledRejection` нет.
+## Безопасность
+
+CORS разрешает только источники из CORS_ORIGINS. Для локальной разработки это localhost на 3000 и 5173, звездочки нет. Лимит запросов висит на /api и отдает 429 с заголовками лимита. Тело ограничено через BODY_LIMIT, заголовки закрыты через helmet, служебный заголовок движка выключен. Куки не используем, поэтому флаги SameSite и Secure не применимы. В production стек в ответ не попадает.
 
 ## Структура проекта
 
-```text
-src/
-  index.js            # разбор аргументов и запуск, exit codes
-  config.js           # env-конфиг
-  cli/args.js         # parseArgs, валидация, --help
-  api/client.js       # fetch + AbortController, URL/URLSearchParams, geocode + forecast
-  api/errors.js       # CityNotFound, Http, Timeout, Network, JsonParse
-  services/weather.js # Promise.allSettled, кэш-интеграция
-  storage/cache.js    # fs/promises + path, reports/{city}-{date}.json
-  format/output.js    # console.table вывод
-docs/postman/         # Postman-коллекция с примерами
-public/               # HTML-просмотр отчёта (бонус)
-tests/                # базовые тесты (бонус)
-Dockerfile            # (бонус)
+```
+src/app.js
+src/server.js
+src/config
+src/routes
+src/controllers
+src/services
+src/repositories
+src/middlewares
+src/validators
+src/errors
+docs/postman
+tests
 ```
 
-## Postman
-
-Коллекция: `docs/postman/collection.json`.
-Переменные: `{{geocodingBaseUrl}}`, `{{forecastBaseUrl}}`, `{{city}}`, `{{lat}}`, `{{lon}}`, `{{days}}`.
-Примеры: успех 200, «город не найден» 200 с пустым `results`, ошибка 400.
-
-## Бонус
-
-### Docker
-
-```bash
-docker build -t weather-digest .
-docker run --rm weather-digest --help
-docker run --rm -e REQUEST_TIMEOUT_MS=5000 weather-digest --city "Москва" --days 2
-docker run --rm -e REPORTS_DIR=/tmp/reports weather-digest --city "Казань" --days 1
-```
-
-Параметры передаются через переменные окружения (`-e`).
-
-- `npm run lint`, `npm run format:check`
-- `public/index.html` — просмотр JSON-отчёта через DOM API. Откройте файл в браузере, выберите JSON из `reports/`.
-- `npm test` — парсинг daily + ошибки
+Слои идут по цепочке маршруты в контроллеры в сервисы в репозитории. Бизнес правила живут в сервисах, работа с файлом только в репозиториях.
