@@ -7,10 +7,7 @@ import {
   removeEquipment,
 } from '../repositories/equipment.js';
 import { findOpenRequestsByEquipment } from '../repositories/requests.js';
-import {
-  NotFoundError,
-  ConflictError,
-} from '../errors/index.js';
+import { NotFoundError, ConflictError } from '../errors/index.js';
 
 const ALLOWED_SORT = ['name', 'installedAt', 'createdAt'];
 
@@ -59,10 +56,7 @@ export async function createEquipmentService(data) {
 export async function updateEquipmentService(id, patch) {
   const current = await findEquipmentById(id);
   if (!current) throw new NotFoundError('Оборудование не найдено');
-  if (
-    patch.serialNumber &&
-    patch.serialNumber !== current.serialNumber
-  ) {
+  if (patch.serialNumber && patch.serialNumber !== current.serialNumber) {
     const busy = await findEquipmentBySerial(patch.serialNumber);
     if (busy) throw new ConflictError('Серийный номер уже занят');
   }

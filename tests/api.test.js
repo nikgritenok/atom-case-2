@@ -37,13 +37,24 @@ describe('Оборудование', () => {
   });
 
   it('отклоняет дубль серийника кодом 409', async () => {
-    await request(app).post('/api/equipment').send(equipmentPayload()).expect(201);
-    await request(app).post('/api/equipment').send(equipmentPayload()).expect(409);
+    await request(app)
+      .post('/api/equipment')
+      .send(equipmentPayload())
+      .expect(201);
+    await request(app)
+      .post('/api/equipment')
+      .send(equipmentPayload())
+      .expect(409);
   });
 
   it('отдает список с метой', async () => {
-    await request(app).post('/api/equipment').send(equipmentPayload()).expect(201);
-    const res = await request(app).get('/api/equipment?page=1&limit=10').expect(200);
+    await request(app)
+      .post('/api/equipment')
+      .send(equipmentPayload())
+      .expect(201);
+    const res = await request(app)
+      .get('/api/equipment?page=1&limit=10')
+      .expect(200);
     expect(res.body.meta.total).toBe(1);
   });
 });

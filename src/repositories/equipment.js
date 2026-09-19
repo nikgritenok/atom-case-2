@@ -13,9 +13,7 @@ export async function findEquipmentById(id) {
 
 export async function findEquipmentBySerial(serialNumber) {
   const db = await loadDb();
-  return (
-    db.equipment.find((e) => e.serialNumber === serialNumber) ?? null
-  );
+  return db.equipment.find((e) => e.serialNumber === serialNumber) ?? null;
 }
 
 export async function createEquipment(data) {
