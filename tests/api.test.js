@@ -1,53 +1,83 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
-import { mapDailyToDays, pickGeoResult } from '../src/api/client.js';
-import { CityNotFoundError, JsonParseError } from '../src/api/errors.js';
+import { describe, it, expect, beforeEach } from '@jest/globals';
+import request from 'supertest';
+import { buildApp } from '../src/app.js';
+import { resetCache } from '../src/repositories/store.js';
+import { unlink } from 'node:fs/promises';
 
-describe('mapDailyToDays — разбор ответа API', () => {
-  it('маппит массивы daily в дни', () => {
-    const daily = {
-      time: ['2026-09-13', '2026-09-14'],
-      temperature_2m_max: [16.2, 18.4],
-      temperature_2m_min: [7.7, 9.2],
-      precipitation_sum: [0, 1.5],
-    };
-    assert.deepEqual(mapDailyToDays(daily, 2), [
-      { date: '2026-09-13', tempMin: 7.7, tempMax: 16.2, precipitation: 0 },
-      { date: '2026-09-14', tempMin: 9.2, tempMax: 18.4, precipitation: 1.5 },
-    ]);
+const app = buildApp();
+
+beforeEach(async () => {
+  resetCache();
+  try {
+    await unlink('data/db.json');
+  } catch {
+    // файла может не быть
+  }
+});
+
+function equipmentPayload(serial = 'SN-J1') {
+  return {
+    name: 'Турбина Тестовая',
+    type: 'turbine',
+    serialNumber: serial,
+    location: { lat: 55.7, lon: 37.6 },
+    status: 'operational',
+    installedAt: '2024-01-10T00:00:00.000Z',
+  };
+}
+
+describe('Оборудование', () => {
+  it('создает и отдает карточку', async () => {
+    const created = await request(app)
+      .post('/api/equipment')
+      .send(equipmentPayload())
+      .expect(201);
+    const id = created.body.data.id;
+    await request(app).get(`/api/equipment/${id}`).expect(200);
   });
 
-  it('бросает JsonParseError на битом daily', () => {
-    assert.throws(() => mapDailyToDays({}, 2), JsonParseError);
-    assert.throws(() => mapDailyToDays(null, 2), JsonParseError);
+  it('отклоняет дубль серийника кодом 409', async () => {
+    await request(app).post('/api/equipment').send(equipmentPayload()).expect(201);
+    await request(app).post('/api/equipment').send(equipmentPayload()).expect(409);
+  });
+
+  it('отдает список с метой', async () => {
+    await request(app).post('/api/equipment').send(equipmentPayload()).expect(201);
+    const res = await request(app).get('/api/equipment?page=1&limit=10').expect(200);
+    expect(res.body.meta.total).toBe(1);
   });
 });
 
-describe('pickGeoResult — город не найден', () => {
-  it('возвращает первый результат', () => {
-    const data = {
-      results: [
-        {
-          name: 'Казань',
-          country: 'Россия',
-          latitude: 55.79,
-          longitude: 49.12,
-        },
-      ],
-    };
-    assert.deepEqual(pickGeoResult(data, 'Казань'), {
-      name: 'Казань',
-      country: 'Россия',
-      latitude: 55.79,
-      longitude: 49.12,
-    });
+describe('Заявки', () => {
+  it('полный цикл статусов и запрет левого перехода', async () => {
+    const eq = await request(app)
+      .post('/api/equipment')
+      .send(equipmentPayload())
+      .expect(201);
+    const equipmentId = eq.body.data.id;
+    const rq = await request(app)
+      .post('/api/requests')
+      .send({ equipmentId, title: 'Проверка узла', priority: 'high' })
+      .expect(201);
+    const id = rq.body.data.id;
+    await request(app)
+      .patch(`/api/requests/${id}/status`)
+      .send({ status: 'in_progress' })
+      .expect(200);
+    await request(app)
+      .patch(`/api/requests/${id}/status`)
+      .send({ status: 'new' })
+      .expect(409);
   });
 
-  it('бросает CityNotFoundError на пустом results', () => {
-    assert.throws(() => pickGeoResult({}, 'XYZ'), CityNotFoundError);
-    assert.throws(
-      () => pickGeoResult({ results: [] }, 'XYZ'),
-      CityNotFoundError
-    );
+  it('заявка на чужое оборудование дает 404', async () => {
+    await request(app)
+      .post('/api/requests')
+      .send({
+        equipmentId: '00000000-0000-4000-8000-000000000000',
+        title: 'Проверка чужого узла',
+        priority: 'low',
+      })
+      .expect(404);
   });
 });
