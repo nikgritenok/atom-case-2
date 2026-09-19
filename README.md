@@ -36,38 +36,38 @@ docker compose up --build
 
 ## Переменные окружения
 
-| Переменная | Пример | Назначение |
-| --- | --- | --- |
-| PORT | 3000 | Порт сервиса |
-| NODE_ENV | development | Режим работы |
-| CORS_ORIGINS | http://localhost:3000,http://localhost:5173 | Разрешенные источники |
-| RATE_LIMIT_WINDOW_MS | 60000 | Окно лимита запросов |
-| RATE_LIMIT_MAX | 100 | Максимум запросов в окне |
-| WEATHER_API_URL | https://api.open-meteo.com/v1/forecast | Прогноз погоды |
-| REQUEST_TIMEOUT_MS | 5000 | Таймаут внешнего запроса |
-| WIND_THRESHOLD_MS | 10 | Порог ветра для работ |
-| PRECIP_THRESHOLD_MM | 0.5 | Порог осадков для работ |
-| BODY_LIMIT | 100kb | Лимит тела запроса |
-| DB_PATH | data/db.json | Путь к файлу базы |
+| Переменная           | Пример                                      | Назначение               |
+| -------------------- | ------------------------------------------- | ------------------------ |
+| PORT                 | 3000                                        | Порт сервиса             |
+| NODE_ENV             | development                                 | Режим работы             |
+| CORS_ORIGINS         | http://localhost:3000,http://localhost:5173 | Разрешенные источники    |
+| RATE_LIMIT_WINDOW_MS | 60000                                       | Окно лимита запросов     |
+| RATE_LIMIT_MAX       | 100                                         | Максимум запросов в окне |
+| WEATHER_API_URL      | https://api.open-meteo.com/v1/forecast      | Прогноз погоды           |
+| REQUEST_TIMEOUT_MS   | 5000                                        | Таймаут внешнего запроса |
+| WIND_THRESHOLD_MS    | 10                                          | Порог ветра для работ    |
+| PRECIP_THRESHOLD_MM  | 0.5                                         | Порог осадков для работ  |
+| BODY_LIMIT           | 100kb                                       | Лимит тела запроса       |
+| DB_PATH              | data/db.json                                | Путь к файлу базы        |
 
 ## Эндпоинты
 
-| Метод | Путь | Назначение |
-| --- | --- | --- |
-| GET | /api/health | Проверка сервиса |
-| GET | /api/equipment | Список оборудования |
-| POST | /api/equipment | Создать оборудование |
-| GET | /api/equipment/:id | Карточка оборудования |
-| PATCH | /api/equipment/:id | Обновить оборудование |
-| DELETE | /api/equipment/:id | Удалить оборудование |
-| GET | /api/equipment/:id/requests | Заявки по объекту |
-| GET | /api/equipment/:id/weather | Прогноз и пригодность окна |
-| GET | /api/requests | Список заявок |
-| POST | /api/requests | Создать заявку |
-| GET | /api/requests/:id | Карточка заявки |
-| PATCH | /api/requests/:id | Править заявку |
-| PATCH | /api/requests/:id/status | Сменить статус |
-| DELETE | /api/requests/:id | Удалить заявку |
+| Метод  | Путь                        | Назначение                 |
+| ------ | --------------------------- | -------------------------- |
+| GET    | /api/health                 | Проверка сервиса           |
+| GET    | /api/equipment              | Список оборудования        |
+| POST   | /api/equipment              | Создать оборудование       |
+| GET    | /api/equipment/:id          | Карточка оборудования      |
+| PATCH  | /api/equipment/:id          | Обновить оборудование      |
+| DELETE | /api/equipment/:id          | Удалить оборудование       |
+| GET    | /api/equipment/:id/requests | Заявки по объекту          |
+| GET    | /api/equipment/:id/weather  | Прогноз и пригодность окна |
+| GET    | /api/requests               | Список заявок              |
+| POST   | /api/requests               | Создать заявку             |
+| GET    | /api/requests/:id           | Карточка заявки            |
+| PATCH  | /api/requests/:id           | Править заявку             |
+| PATCH  | /api/requests/:id/status    | Сменить статус             |
+| DELETE | /api/requests/:id           | Удалить заявку             |
 
 Списки принимают фильтры, сортировку и пагинацию. Ответ списка содержит данные и мету total, page и limit.
 

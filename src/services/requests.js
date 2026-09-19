@@ -6,10 +6,7 @@ import {
   removeRequest,
 } from '../repositories/requests.js';
 import { findEquipmentById } from '../repositories/equipment.js';
-import {
-  NotFoundError,
-  ConflictError,
-} from '../errors/index.js';
+import { NotFoundError, ConflictError } from '../errors/index.js';
 
 const TRANSITIONS = {
   new: ['in_progress', 'rejected'],
@@ -81,9 +78,7 @@ export async function changeRequestStatus(id, next) {
   if (!current) throw new NotFoundError('Заявка не найдена');
   const allowed = TRANSITIONS[current.status] ?? [];
   if (!allowed.includes(next)) {
-    throw new ConflictError(
-      `Переход из ${current.status} в ${next} запрещен`
-    );
+    throw new ConflictError(`Переход из ${current.status} в ${next} запрещен`);
   }
   return updateRequest(id, { status: next });
 }

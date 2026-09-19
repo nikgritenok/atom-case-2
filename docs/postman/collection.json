@@ -17,7 +17,11 @@
           "name": "Проверка сервиса",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/health", "host": ["{{baseUrl}}"], "path": ["api", "health"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
           },
           "event": [
             {
@@ -45,7 +49,11 @@
               "mode": "raw",
               "raw": "{\"name\":\"Турбина Северная\",\"type\":\"turbine\",\"serialNumber\":\"SN-100\",\"location\":{\"lat\":55.7,\"lon\":37.6},\"status\":\"operational\",\"installedAt\":\"2024-05-10T00:00:00.000Z\"}"
             },
-            "url": { "raw": "{{baseUrl}}/api/equipment", "host": ["{{baseUrl}}"], "path": ["api", "equipment"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment"]
+            }
           },
           "event": [
             {
@@ -67,7 +75,10 @@
               "raw": "{{baseUrl}}/api/equipment?page=1&limit=20",
               "host": ["{{baseUrl}}"],
               "path": ["api", "equipment"],
-              "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }]
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
             }
           },
           "event": [
@@ -86,13 +97,19 @@
           "name": "Карточка оборудования",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "{{equipmentId}}"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment", "{{equipmentId}}"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ]
@@ -103,13 +120,19 @@
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\"status\":\"maintenance\"}" },
-            "url": { "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "{{equipmentId}}"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment", "{{equipmentId}}"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ]
@@ -118,13 +141,19 @@
           "name": "Заявки по объекту",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}/requests", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "{{equipmentId}}", "requests"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}/requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment", "{{equipmentId}}", "requests"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ]
@@ -133,7 +162,11 @@
           "name": "Погода по объекту",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}/weather", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "{{equipmentId}}", "weather"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}/weather",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment", "{{equipmentId}}", "weather"]
+            }
           },
           "event": [
             {
@@ -155,13 +188,19 @@
               "mode": "raw",
               "raw": "{\"name\":\"Турбина Двойник\",\"type\":\"turbine\",\"serialNumber\":\"SN-100\",\"location\":{\"lat\":55.7,\"lon\":37.6},\"status\":\"operational\",\"installedAt\":\"2024-05-10T00:00:00.000Z\"}"
             },
-            "url": { "raw": "{{baseUrl}}/api/equipment", "host": ["{{baseUrl}}"], "path": ["api", "equipment"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 409', function () { pm.response.to.have.status(409); });"]
+                "exec": [
+                  "pm.test('Код 409', function () { pm.response.to.have.status(409); });"
+                ]
               }
             }
           ]
@@ -172,13 +211,19 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\"name\":\"12\"}" },
-            "url": { "raw": "{{baseUrl}}/api/equipment", "host": ["{{baseUrl}}"], "path": ["api", "equipment"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 422', function () { pm.response.to.have.status(422); });"]
+                "exec": [
+                  "pm.test('Код 422', function () { pm.response.to.have.status(422); });"
+                ]
               }
             }
           ]
@@ -187,13 +232,23 @@
           "name": "Чужой id 404",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/equipment/00000000-0000-4000-8000-000000000000", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "00000000-0000-4000-8000-000000000000"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment/00000000-0000-4000-8000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "equipment",
+                "00000000-0000-4000-8000-000000000000"
+              ]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 404', function () { pm.response.to.have.status(404); });"]
+                "exec": [
+                  "pm.test('Код 404', function () { pm.response.to.have.status(404); });"
+                ]
               }
             }
           ]
@@ -212,7 +267,11 @@
               "mode": "raw",
               "raw": "{\"equipmentId\":\"{{equipmentId}}\",\"title\":\"Проверка подшипника\",\"description\":\"Шум при вращении\",\"priority\":\"high\"}"
             },
-            "url": { "raw": "{{baseUrl}}/api/requests", "host": ["{{baseUrl}}"], "path": ["api", "requests"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests"]
+            }
           },
           "event": [
             {
@@ -230,13 +289,23 @@
           "name": "Список заявок",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/requests?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "requests"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] }
+            "url": {
+              "raw": "{{baseUrl}}/api/requests?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ]
@@ -245,13 +314,19 @@
           "name": "Карточка заявки",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/requests/{{requestId}}", "host": ["{{baseUrl}}"], "path": ["api", "requests", "{{requestId}}"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ]
@@ -262,13 +337,19 @@
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\"priority\":\"critical\"}" },
-            "url": { "raw": "{{baseUrl}}/api/requests/{{requestId}}", "host": ["{{baseUrl}}"], "path": ["api", "requests", "{{requestId}}"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ]
@@ -279,13 +360,19 @@
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\"status\":\"in_progress\"}" },
-            "url": { "raw": "{{baseUrl}}/api/requests/{{requestId}}/status", "host": ["{{baseUrl}}"], "path": ["api", "requests", "{{requestId}}", "status"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "status"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 200', function () { pm.response.to.have.status(200); });"]
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ]
@@ -296,13 +383,19 @@
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": { "mode": "raw", "raw": "{\"status\":\"new\"}" },
-            "url": { "raw": "{{baseUrl}}/api/requests/{{requestId}}/status", "host": ["{{baseUrl}}"], "path": ["api", "requests", "{{requestId}}", "status"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "status"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 409', function () { pm.response.to.have.status(409); });"]
+                "exec": [
+                  "pm.test('Код 409', function () { pm.response.to.have.status(409); });"
+                ]
               }
             }
           ]
@@ -316,13 +409,19 @@
               "mode": "raw",
               "raw": "{\"equipmentId\":\"00000000-0000-4000-8000-000000000000\",\"title\":\"Проверка чужого узла\",\"priority\":\"low\"}"
             },
-            "url": { "raw": "{{baseUrl}}/api/requests", "host": ["{{baseUrl}}"], "path": ["api", "requests"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 404', function () { pm.response.to.have.status(404); });"]
+                "exec": [
+                  "pm.test('Код 404', function () { pm.response.to.have.status(404); });"
+                ]
               }
             }
           ]
@@ -331,13 +430,19 @@
           "name": "Удалить заявку",
           "request": {
             "method": "DELETE",
-            "url": { "raw": "{{baseUrl}}/api/requests/{{requestId}}", "host": ["{{baseUrl}}"], "path": ["api", "requests", "{{requestId}}"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 204', function () { pm.response.to.have.status(204); });"]
+                "exec": [
+                  "pm.test('Код 204', function () { pm.response.to.have.status(204); });"
+                ]
               }
             }
           ]
@@ -346,13 +451,19 @@
           "name": "Удалить оборудование",
           "request": {
             "method": "DELETE",
-            "url": { "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "equipment", "{{equipmentId}}"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment", "{{equipmentId}}"]
+            }
           },
           "event": [
             {
               "listen": "test",
               "script": {
-                "exec": ["pm.test('Код 204', function () { pm.response.to.have.status(204); });"]
+                "exec": [
+                  "pm.test('Код 204', function () { pm.response.to.have.status(204); });"
+                ]
               }
             }
           ]
