@@ -4,9 +4,13 @@ COPY package*.json ./
 RUN npm ci --omit=dev || npm install --omit=dev
 COPY src/ ./src/
 COPY README.md ./
-ENV GEOCODING_BASE_URL=https://geocoding-api.open-meteo.com/v1/search
-ENV FORECAST_BASE_URL=https://api.open-meteo.com/v1/forecast
+ENV PORT=3000
+ENV NODE_ENV=production
+ENV CORS_ORIGINS=http://localhost:3000
+ENV RATE_LIMIT_WINDOW_MS=60000
+ENV RATE_LIMIT_MAX=100
+ENV WEATHER_API_URL=https://api.open-meteo.com/v1/forecast
 ENV REQUEST_TIMEOUT_MS=5000
-ENV REPORTS_DIR=reports
-ENTRYPOINT ["node", "src/index.js"]
-CMD ["--help"]
+ENV DB_PATH=data/db.json
+EXPOSE 3000
+CMD ["node", "src/server.js"]
