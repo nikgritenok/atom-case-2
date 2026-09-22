@@ -8,6 +8,7 @@ import {
 } from '../validators/equipment.js';
 import * as controller from '../controllers/equipment.js';
 import { byEquipment } from '../controllers/equipmentRequests.js';
+import { weatherByEquipment } from '../controllers/weather.js';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.patch(
 );
 router.delete('/:id', validate(idParam, 'params'), controller.remove);
 router.get('/:id/requests', validate(idParam, 'params'), byEquipment);
+router.get('/:id/weather', validate(idParam, 'params'), weatherByEquipment);
 
 export default router;
