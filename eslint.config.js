@@ -28,6 +28,17 @@ export default [
     rules: { 'no-console': 'off' },
   },
   {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        module: 'writable',
+        require: 'readonly',
+        __dirname: 'readonly',
+      },
+    },
+  },
+  {
     files: ['public/**/*.js'],
     languageOptions: {
       globals: {
