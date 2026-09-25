@@ -13,6 +13,14 @@ export class ValidationError extends Error {
   }
 }
 
+export class BadRequestError extends Error {
+  constructor(message, details = []) {
+    super(message);
+    this.name = 'BadRequestError';
+    this.details = details;
+  }
+}
+
 export class ConflictError extends Error {
   constructor(message) {
     super(message);
