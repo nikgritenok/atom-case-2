@@ -1,0 +1,10 @@
+                                                        QUERY PLAN                                                        
+--------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=10.51..10.52 rows=1 width=1620) (actual time=0.057..0.060 rows=1 loops=1)
+   Sort Key: created_at
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=4
+   ->  Seq Scan on request_status_history  (cost=0.00..10.50 rows=1 width=1620) (actual time=0.013..0.017 rows=1 loops=1)
+         Filter: (request_id = '11111111-1111-4111-8111-000000000041'::uuid)
+         Rows Removed by Filter: 39
+         Buffers: shared hit=1

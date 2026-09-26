@@ -1,0 +1,12 @@
+                                                    QUERY PLAN                                                     
+-------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=10.88..10.89 rows=1 width=1120) (actual time=0.113..0.120 rows=2 loops=1)
+   Buffers: shared hit=4
+   ->  Sort  (cost=10.88..10.89 rows=1 width=1120) (actual time=0.112..0.113 rows=2 loops=1)
+         Sort Key: created_at DESC
+         Sort Method: quicksort  Memory: 25kB
+         Buffers: shared hit=4
+         ->  Seq Scan on equipment  (cost=0.00..10.88 rows=1 width=1120) (actual time=0.042..0.076 rows=2 loops=1)
+               Filter: ((deleted_at IS NULL) AND ((name)::text ~~* '%Турбина%'::text))
+               Rows Removed by Filter: 4
+               Buffers: shared hit=1

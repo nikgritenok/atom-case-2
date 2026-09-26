@@ -1,0 +1,18 @@
+                                                                     QUERY PLAN                                                                      
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=8.16..8.17 rows=1 width=1120) (actual time=0.112..0.120 rows=2 loops=1)
+   Buffers: shared hit=5
+   ->  Sort  (cost=8.16..8.17 rows=1 width=1120) (actual time=0.111..0.112 rows=2 loops=1)
+         Sort Key: created_at DESC
+         Sort Method: quicksort  Memory: 25kB
+         Buffers: shared hit=5
+         ->  Index Scan using uq_equipment_serial_active on equipment  (cost=0.14..8.15 rows=1 width=1120) (actual time=0.063..0.076 rows=2 loops=1)
+               Filter: ((name)::text ~~* '%Турбина%'::text)
+               Rows Removed by Filter: 4
+               Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=176 dirtied=1
+ Planning Time: 3.793 ms
+ Execution Time: 0.184 ms
+(14 rows)
+

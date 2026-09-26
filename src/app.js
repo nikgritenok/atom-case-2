@@ -7,6 +7,8 @@ import { errorHandler } from './middlewares/errorHandler.js';
 import { apiLimiter } from './middlewares/rateLimit.js';
 import equipmentRoutes from './routes/equipment.js';
 import requestRoutes from './routes/requests.js';
+import sitesRoutes from './routes/sites.js';
+import reportsRoutes from './routes/reports.js';
 import cors from 'cors';
 import helmet from 'helmet';
 
@@ -32,6 +34,8 @@ export function buildApp() {
   app.use('/api', apiLimiter);
   app.use('/api/equipment', equipmentRoutes);
   app.use('/api/requests', requestRoutes);
+  app.use('/api/sites', sitesRoutes);
+  app.use('/api/reports', reportsRoutes);
 
   app.use(notFound);
   app.use(errorHandler);

@@ -1,43 +1,33 @@
 import {
-  findAllEquipment,
   findEquipmentById,
   findEquipmentBySerial,
   createEquipment,
   updateEquipment,
   removeEquipment,
+  listEquipmentDB,
+  countEquipmentDB,
 } from '../repositories/equipment.js';
 import { findOpenRequestsByEquipment } from '../repositories/requests.js';
-import { NotFoundError, ConflictError } from '../errors/index.js';
-
-const ALLOWED_SORT = ['name', 'installedAt', 'createdAt'];
+import {
+  NotFoundError,
+  ConflictError,
+  BadRequestError,
+} from '../errors/index.js';
+import { config } from '../config/index.js';
 
 export async function listEquipment(query) {
-  const all = await findAllEquipment();
-  let items = [...all];
-
-  if (query.type) items = items.filter((e) => e.type === query.type);
-  if (query.status) items = items.filter((e) => e.status === query.status);
-  if (query.search) {
-    const needle = query.search.toLowerCase();
-    items = items.filter((e) => e.name.toLowerCase().includes(needle));
+  const { type, status, search, sortBy, order } = query ?? {};
+  const page = query?.page ?? 1;
+  const limit = query?.limit ?? 20;
+  const offset = (page - 1) * limit;
+  if (limit > config.maxLimit || offset > config.maxOffset) {
+    throw new BadRequestError('Превышен лимит пагинации');
   }
-
-  const sortBy = ALLOWED_SORT.includes(query.sortBy)
-    ? query.sortBy
-    : 'createdAt';
-  const order = query.order === 'asc' ? 1 : -1;
-  items.sort((a, b) => {
-    if (a[sortBy] < b[sortBy]) return -1 * order;
-    if (a[sortBy] > b[sortBy]) return 1 * order;
-    return 0;
-  });
-
-  const page = query.page ?? 1;
-  const limit = query.limit ?? 20;
-  const total = items.length;
-  const start = (page - 1) * limit;
-  const data = items.slice(start, start + limit);
-
+  const filters = { type, status, search, sortBy, order, limit, offset };
+  const [data, total] = await Promise.all([
+    listEquipmentDB(filters),
+    countEquipmentDB({ type, status, search }),
+  ]);
   return { data, meta: { total, page, limit } };
 }
 

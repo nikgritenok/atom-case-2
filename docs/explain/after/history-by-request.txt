@@ -1,0 +1,11 @@
+                                                                      QUERY PLAN                                                                       
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+ Index Scan using idx_history_request_created on request_status_history  (cost=0.14..8.16 rows=1 width=1620) (actual time=0.019..0.023 rows=1 loops=1)
+   Index Cond: (request_id = '11111111-1111-4111-8111-000000000041'::uuid)
+   Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=105
+ Planning Time: 0.969 ms
+ Execution Time: 0.070 ms
+(7 rows)
+

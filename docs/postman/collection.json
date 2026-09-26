@@ -7,7 +7,10 @@
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:3000" },
     { "key": "equipmentId", "value": "" },
-    { "key": "requestId", "value": "" }
+    { "key": "requestId", "value": "" },
+    { "key": "technicianId", "value": "" },
+    { "key": "sparePartId", "value": "" },
+    { "key": "siteId", "value": "" }
   ],
   "item": [
     {
@@ -463,6 +466,461 @@
               "script": {
                 "exec": [
                   "pm.test('Код 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "assignees",
+      "item": [
+        {
+          "name": "Назначить бригаду",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"assignees\":[{\"technicianId\":\"{{technicianId}}\",\"role\":\"lead\",\"hours\":2}]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/assignees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "assignees"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Есть бригада', function () { var j = pm.response.json(); pm.expect(j.data.assignees).to.be.an('array'); pm.collectionVariables.set('technicianId', j.data.assignees[0].id); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Дубль специалиста 409",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"assignees\":[{\"technicianId\":\"{{technicianId}}\",\"role\":\"lead\",\"hours\":2},{\"technicianId\":\"{{technicianId}}\",\"role\":\"member\",\"hours\":1}]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/assignees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "assignees"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Несуществующий специалист 404",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"assignees\":[{\"technicianId\":\"00000000-0000-4000-8000-000000000000\",\"role\":\"lead\",\"hours\":2}]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/assignees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "assignees"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Бригада без ведущего 422",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"assignees\":[{\"technicianId\":\"{{technicianId}}\",\"role\":\"member\",\"hours\":2}]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/assignees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "assignees"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 422', function () { pm.response.to.have.status(422); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Снять специалиста",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/assignees/{{technicianId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "requests",
+                "{{requestId}}",
+                "assignees",
+                "{{technicianId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Снять отсутствующего 404",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/assignees/00000000-0000-4000-8000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "requests",
+                "{{requestId}}",
+                "assignees",
+                "00000000-0000-4000-8000-000000000000"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "history",
+      "item": [
+        {
+          "name": "История заявки",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "history"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Порядок по дате', function () { var h = pm.response.json().data; pm.expect(h).to.be.an('array'); for (var i = 1; i < h.length; i++) { pm.expect(h[i].createdAt >= h[i-1].createdAt).to.eql(true); } });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sites-summary",
+      "item": [
+        {
+          "name": "Сводка площадки",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/sites/{{siteId}}/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sites", "{{siteId}}", "summary"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Есть сводка', function () { var j = pm.response.json(); pm.expect(j.data.total).to.be.a('number'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Сводка чужой площадки 404",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/sites/00000000-0000-4000-8000-000000000000/summary",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "sites",
+                "00000000-0000-4000-8000-000000000000",
+                "summary"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reports",
+      "item": [
+        {
+          "name": "Нагрузка оборудования",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/equipment-load",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "equipment-load"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Есть данные', function () { var j = pm.response.json(); pm.expect(j.data).to.be.an('array'); pm.expect(j.meta.total).to.be.a('number'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Нагрузка с фильтром",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/equipment-load?minRequests=2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "equipment-load"],
+              "query": [{ "key": "minRequests", "value": "2" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Есть данные', function () { var j = pm.response.json(); pm.expect(j.data).to.be.an('array'); pm.expect(j.meta.total).to.be.a('number'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "parts",
+      "item": [
+        {
+          "name": "Списать запчасти",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"parts\":[{\"sparePartId\":\"{{sparePartId}}\",\"qty\":1}]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/parts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "parts"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Сохранить запчасть', function () { var j = pm.response.json(); pm.collectionVariables.set('sparePartId', j.data[0].id); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Список запчастей",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/parts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "parts"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Есть список', function () { var j = pm.response.json(); pm.expect(j.data).to.be.an('array'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Сверх остатка 409",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"parts\":[{\"sparePartId\":\"{{sparePartId}}\",\"qty\":1000}]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/parts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "parts"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Снять запчасть",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/parts/{{sparePartId}}",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "requests",
+                "{{requestId}}",
+                "parts",
+                "{{sparePartId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "negative",
+      "item": [
+        {
+          "name": "Бригада без ведущего 422",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"assignees\":[{\"technicianId\":\"{{technicianId}}\",\"role\":\"member\",\"hours\":2}]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/assignees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "assignees"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 422', function () { pm.response.to.have.status(422); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "В работу без бригады 409",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"status\":\"in_progress\"}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "status"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 409', function () { pm.response.to.have.status(409); });"
                 ]
               }
             }

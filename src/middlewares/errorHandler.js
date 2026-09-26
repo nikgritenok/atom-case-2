@@ -1,5 +1,6 @@
 import { config } from '../config/index.js';
 import {
+  BadRequestError,
   NotFoundError,
   ValidationError,
   ConflictError,
@@ -19,6 +20,10 @@ export function errorHandler(err, req, res, _next) {
     code = 'VALIDATION_ERROR';
     message = err.message;
     details = err.details ?? [];
+  } else if (err instanceof BadRequestError) {
+    status = 400;
+    code = 'BAD_REQUEST';
+    message = err.message;
   } else if (err instanceof NotFoundError) {
     status = 404;
     code = 'NOT_FOUND';

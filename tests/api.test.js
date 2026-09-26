@@ -1,18 +1,13 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterAll } from '@jest/globals';
 import request from 'supertest';
 import { buildApp } from '../src/app.js';
-import { resetCache } from '../src/repositories/store.js';
-import { unlink } from 'node:fs/promises';
-
+import { sequelize, Technician } from '../src/db/index.js';
 const app = buildApp();
-
 beforeEach(async () => {
-  resetCache();
-  try {
-    await unlink('data/db.json');
-  } catch {
-    // файла может не быть
-  }
+  await sequelize.truncate({ cascade: true, restartIdentity: true });
+});
+afterAll(async () => {
+  await sequelize.close();
 });
 
 function equipmentPayload(serial = 'SN-J1') {
@@ -71,6 +66,16 @@ describe('Заявки', () => {
       .send({ equipmentId, title: 'Проверка узла', priority: 'high' })
       .expect(201);
     const id = rq.body.data.id;
+    const tech = await Technician.create({
+      fullName: 'Тестовый Механик',
+      tabNumber: 'TEST-001',
+    });
+    await request(app)
+      .post(`/api/requests/${id}/assignees`)
+      .send({
+        assignees: [{ technicianId: tech.id, role: 'lead', hours: 2 }],
+      })
+      .expect(200);
     await request(app)
       .patch(`/api/requests/${id}/status`)
       .send({ status: 'in_progress' })
