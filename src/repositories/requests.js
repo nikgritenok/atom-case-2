@@ -81,8 +81,8 @@ function buildWhere({ status, priority, equipmentId, from, to, search }) {
     if (from) where.createdAt[Op.gte] = from;
     if (to) where.createdAt[Op.lte] = to;
   }
-  if (search) {
-    const needle = `%${search}%`;
+  if (typeof search === 'string' && search.trim() !== '') {
+    const needle = `%${search.trim().replace(/[%_]/g, (c) => `\\${c}`)}%`;
     where[Op.or] = [
       { title: { [Op.iLike]: needle } },
       { description: { [Op.iLike]: needle } },

@@ -38,7 +38,7 @@ export const equipmentListQuery = z
   .object({
     type: z.enum(equipmentTypes).optional(),
     status: z.enum(equipmentStatuses).optional(),
-    search: z.string().optional(),
+    search: z.string().max(100).optional(),
     sortBy: z.string().optional(),
     order: z.enum(['asc', 'desc']).optional(),
     page: z.coerce.number().int().min(1).default(1),

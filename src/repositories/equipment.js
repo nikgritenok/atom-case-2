@@ -78,8 +78,9 @@ function buildWhere(filters = {}) {
   if (filters.status) {
     where.status = filters.status;
   }
-  if (filters.search) {
-    where.name = { [Op.iLike]: `%${filters.search}%` };
+  if (typeof filters.search === 'string' && filters.search.trim() !== '') {
+    const needle = `%${filters.search.trim().replace(/[%_]/g, (c) => `\\${c}`)}%`;
+    where.name = { [Op.iLike]: needle };
   }
   return where;
 }

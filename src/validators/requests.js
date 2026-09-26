@@ -42,6 +42,7 @@ export const requestListQuery = z
     status: z.enum(statuses).optional(),
     priority: z.enum(priorities).optional(),
     equipmentId: z.string().uuid().optional(),
+    search: z.string().max(100).optional(),
     from: z.string().optional(),
     to: z.string().optional(),
     sortBy: z.string().optional(),
