@@ -4,20 +4,52 @@
 
 ## Требования
 
-- Node.js 22 и выше
-- Postgres 16
-- npm
-- Доступ в интернет для прогноза через Open-Meteo
+- Node.js 22 и выше (`node --version`), npm
+- Docker Desktop / OrbStack / Docker Engine с `docker compose` (рекомендуемый путь, база поднимается сама)
+- Или свой Postgres 16 (только для локального варианта без Docker)
+- Доступ в интернет для прогноза через Open-Meteo (без него эндпоинт погоды отвечает 502, остальное работает)
+- Порты 3000 (сервис) и 5432 (база) свободны
 
 ## Запуск с нуля
 
-Вариант А, локальный. Подходит для разработки: база рядом, код запускается из папки.
+### Вариант А, через Docker. Единственный шаг для проверки ментором на любой ОС
+
+`.env` прикладывать не нужно: compose подхватывает дефолты сам, а `env_file` помечен необязательным. Если `.env` есть, его значения используются.
 
 ```bash
-brew services start postgresql@16
-createdb maintenance
-createdb maintenance_test
+docker compose up --build
+```
+
+Что происходит при старте контейнера `app`: ждет базу (`scripts/wait-db.js`), накатывает миграции (`sequelize-cli db:migrate`), заливает сиды только на пустую базу (`scripts/seed-if-empty.js`) и стартует сервер. Повторный `up` ничего не дублирует. Сервис доступен на `http://localhost:3000`, база на `localhost:5432`.
+
+Остановка с удалением данных:
+
+```bash
+docker compose down -v
+```
+
+Без `-v` данные в volume `pgdata` сохраняются между перезапусками.
+
+### Вариант Б, локально без Docker. Для разработки
+
+Нужен Postgres 16 рядом. Дальше команды одинаковые на macOS, Linux и Windows (PowerShell), отличается только установка и старт Postgres.
+
+1. Поставить Postgres 16:
+   - macOS: `brew install postgresql@16`, затем `brew services start postgresql@16`
+   - Debian/Ubuntu: `sudo apt install postgresql-16`, затем `sudo systemctl start postgresql`
+   - Windows: установщик с postgresql.org (EDB), служба стартует сама; команды ниже выполнять в PowerShell
+2. Создать роль и базы под значения из `.env`:
+
+```bash
 cp .env.example .env
+psql -U postgres -h localhost -c "CREATE ROLE app WITH LOGIN PASSWORD 'app' CREATEDB;"
+psql -U postgres -h localhost -c "CREATE DATABASE maintenance OWNER app;"
+psql -U postgres -h localhost -c "CREATE DATABASE maintenance_test OWNER app;"
+```
+
+Если Postgres уже настроен под другого пользователя, поправьте `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_NAME_TEST` в `.env` вместо создания роли. 3. Поднять окружение и сервис из корня проекта:
+
+```bash
 npm install
 npm run db:wait
 npm run db:migrate
@@ -26,24 +58,19 @@ npm run db:import
 npm run dev
 ```
 
-`db:wait` ждет готовности базы, `db:migrate` накатывает схему, `db:seed:all` заливает демоданные, `db:import` переносит остатки старого файлового хранилища, если файл еще лежит в `data/db.json`. На чистой базе без старого файла импорт молча пропускается.
+Назначение шагов: `db:wait` ждет готовности базы, `db:migrate` накатывает схему в `DB_NAME`, `db:seed:all` заливает демоданные, `db:import` переносит остатки старого файлового хранилища, если файл еще лежит в `data/db.json` (на чистой базе без старого файла импорт молча пропускается). Тестовая база `DB_NAME_TEST` готовится отдельно командой `npm run test:setup`, запускать `db:migrate`/`db:seed:all` под тесты руками не нужно.
 
-Вариант Б, для проверки ментором. Один шаг поднимает базу и сервис:
-
-```bash
-cp .env.example .env
-docker compose up --build
-```
-
-Сервис ждет здоровую базу через `depends_on` и стартует на `http://localhost:3000`.
-
-Проверка после запуска:
+### Проверка после запуска
 
 ```bash
 curl http://localhost:3000/api/health
 npm test
-postman collection run docs/postman/collection.json -e docs/postman/environment.json
+npm run postman:test
 ```
+
+`npm test` ходит в `DB_NAME_TEST` (создается через `npm run test:setup`), рабочую базу не трогает. `npm run postman:test` гоняет коллекцию `docs/postman/collection.json` через newman (ставится с dev-зависимостями) и рассчитан на чистую базу со сидами: серийник генерируется уникальным на каждый прогон, id оборудования и заявки пробрасываются между запросами автоматически, `technicianId`/`sparePartId`/`siteId` по умолчанию уже заполнены id из сидов. Порядок в коллекции менять не нужно: перевод заявки в работу идет после назначения бригады, удаление созданных сущностей вынесено в папку `cleanup` в конце. Лимит 100 запросов в минуту на `/api`: полный прогон коллекции укладывается, но два запуска подряд без паузы упрутся в 429, подождите минуту.
+
+Если `curl` висит или отвечает отказом в соединении: проверьте, что контейнер `app` в статусе Up (`docker compose ps`), и смотрите логи `docker compose logs app`. Если порт 3000 занят, остановите локальный `npm run dev` или другой сервис на этом порту.
 
 ## Переменные окружения
 
@@ -70,7 +97,7 @@ postman collection run docs/postman/collection.json -e docs/postman/environment.
 | DB_POOL_ACQUIRE_MS   | 30000                                       | Таймаут получения коннекта |
 | DB_POOL_IDLE_MS      | 10000                                       | Простой коннекта до сброса |
 
-Локально держите `DB_HOST=localhost`. В compose сервис `app` переопределяет `DB_HOST=db`, переписывать `.env` под контейнер не нужно.
+Локально держите `DB_HOST=localhost` (значение из `.env.example`). В compose `DB_HOST=db` задается через `environment` сервиса `app`, переписывать `.env` под контейнер не нужно. Остальные переменные базы тоже имеют дефолты в compose (`app`/`app`/`maintenance`), поэтому запуск работает вообще без `.env`.
 
 Про права: в проде приложение ходит пользователем `app` без права менять схему. Миграции гоняет владелец базы, у приложения только чтение и запись данных.
 
