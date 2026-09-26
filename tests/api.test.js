@@ -4,6 +4,9 @@ import { buildApp } from '../src/app.js';
 import { sequelize, Technician } from '../src/db/index.js';
 const app = buildApp();
 beforeEach(async () => {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('Тесты требуют NODE_ENV=test для защиты основной базы');
+  }
   await sequelize.truncate({ cascade: true, restartIdentity: true });
 });
 afterAll(async () => {
