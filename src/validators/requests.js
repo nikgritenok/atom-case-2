@@ -32,6 +32,8 @@ export const requestUpdate = z
 export const requestStatusChange = z
   .object({
     status: z.enum(statuses, 'Недопустимый статус'),
+    author: z.string().max(200).optional(),
+    comment: z.string().max(2000).optional(),
   })
   .strip();
 
@@ -49,4 +51,43 @@ export const requestListQuery = z
   })
   .strip();
 
+export const assigneesBody = z
+  .object({
+    assignees: z.array(
+      z
+        .object({
+          technicianId: z.string().uuid(),
+          role: z.enum(['lead', 'member']),
+          hours: z.number().min(0).max(1000),
+        })
+        .strip()
+    ),
+  })
+  .strip();
+
+export const userIdParam = z.object({ userId: z.string().uuid() }).strip();
+
+export const partsBody = z
+  .object({
+    parts: z.array(
+      z
+        .object({
+          sparePartId: z.string().uuid('Некорректный идентификатор запчасти'),
+          qty: z
+            .number({
+              required_error: 'Количество вне диапазона',
+              invalid_type_error: 'Количество вне диапазона',
+            })
+            .int('Количество вне диапазона')
+            .min(1, 'Количество вне диапазона')
+            .max(1000, 'Количество вне диапазона'),
+        })
+        .strip()
+    ),
+  })
+  .strip();
+
+export const partIdParam = z.object({
+  partId: z.string().uuid('Некорректный идентификатор запчасти'),
+});
 export { idParam };
