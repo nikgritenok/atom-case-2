@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev || npm install --omit=dev
 COPY src/ ./src/
-COPY README.md ./
+COPY .sequelizerc ./
 ENV PORT=3000
 ENV NODE_ENV=production
 EXPOSE 3000
