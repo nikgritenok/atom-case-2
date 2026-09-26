@@ -4,4 +4,3 @@ reports/
 coverage/
 .DS_Store
 *.log
-data/db.json

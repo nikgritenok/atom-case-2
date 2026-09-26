@@ -1,18 +1,13 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterAll } from '@jest/globals';
 import request from 'supertest';
 import { buildApp } from '../src/app.js';
-import { resetCache } from '../src/repositories/store.js';
-import { unlink } from 'node:fs/promises';
-
+import { sequelize } from '../src/db/index.js';
 const app = buildApp();
-
 beforeEach(async () => {
-  resetCache();
-  try {
-    await unlink('data/db.json');
-  } catch {
-    // файла может не быть
-  }
+  await sequelize.truncate({ cascade: true, restartIdentity: true });
+});
+afterAll(async () => {
+  await sequelize.close();
 });
 
 function equipmentPayload(serial = 'SN-J1') {
