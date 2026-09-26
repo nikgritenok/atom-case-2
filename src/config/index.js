@@ -22,7 +22,6 @@ export const config = {
   windThreshold: Number(process.env.WIND_THRESHOLD_MS ?? '10'),
   precipThreshold: Number(process.env.PRECIP_THRESHOLD_MM ?? '0.5'),
   bodyLimit: process.env.BODY_LIMIT ?? '100kb',
-  dbPath: process.env.DB_PATH ?? 'data/db.json',
   db: {
     host: process.env.DB_HOST ?? 'localhost',
     port: num(process.env.DB_PORT, 5432),
