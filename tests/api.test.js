@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterAll } from '@jest/globals';
 import request from 'supertest';
 import { buildApp } from '../src/app.js';
-import { sequelize } from '../src/db/index.js';
+import { sequelize, Technician } from '../src/db/index.js';
 const app = buildApp();
 beforeEach(async () => {
   await sequelize.truncate({ cascade: true, restartIdentity: true });
@@ -66,6 +66,16 @@ describe('Заявки', () => {
       .send({ equipmentId, title: 'Проверка узла', priority: 'high' })
       .expect(201);
     const id = rq.body.data.id;
+    const tech = await Technician.create({
+      fullName: 'Тестовый Механик',
+      tabNumber: 'TEST-001',
+    });
+    await request(app)
+      .post(`/api/requests/${id}/assignees`)
+      .send({
+        assignees: [{ technicianId: tech.id, role: 'lead', hours: 2 }],
+      })
+      .expect(200);
     await request(app)
       .patch(`/api/requests/${id}/status`)
       .send({ status: 'in_progress' })
