@@ -1,0 +1,18 @@
+                                                                            QUERY PLAN                                                                            
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=8.17..8.18 rows=1 width=1136) (actual time=0.046..0.050 rows=2 loops=1)
+   Buffers: shared hit=5
+   ->  Sort  (cost=8.17..8.18 rows=1 width=1136) (actual time=0.044..0.045 rows=2 loops=1)
+         Sort Key: created_at DESC
+         Sort Method: quicksort  Memory: 25kB
+         Buffers: shared hit=5
+         ->  Index Scan using idx_requests_status_priority on maintenance_requests  (cost=0.14..8.16 rows=1 width=1136) (actual time=0.018..0.020 rows=2 loops=1)
+               Index Cond: ((status = 'new'::enum_requests_status) AND (priority = 'high'::enum_requests_priority))
+               Filter: (deleted_at IS NULL)
+               Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=153
+ Planning Time: 1.721 ms
+ Execution Time: 0.100 ms
+(14 rows)
+

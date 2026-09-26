@@ -1,0 +1,12 @@
+                                                               QUERY PLAN                                                                
+-----------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=11.06..11.07 rows=1 width=1136) (actual time=0.030..0.033 rows=2 loops=1)
+   Buffers: shared hit=4
+   ->  Sort  (cost=11.06..11.07 rows=1 width=1136) (actual time=0.029..0.030 rows=2 loops=1)
+         Sort Key: created_at DESC
+         Sort Method: quicksort  Memory: 25kB
+         Buffers: shared hit=4
+         ->  Seq Scan on maintenance_requests  (cost=0.00..11.05 rows=1 width=1136) (actual time=0.013..0.015 rows=2 loops=1)
+               Filter: ((deleted_at IS NULL) AND (status = 'new'::enum_requests_status) AND (priority = 'high'::enum_requests_priority))
+               Rows Removed by Filter: 18
+               Buffers: shared hit=1
