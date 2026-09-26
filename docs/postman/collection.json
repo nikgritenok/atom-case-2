@@ -5,12 +5,30 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:3000" },
-    { "key": "equipmentId", "value": "" },
-    { "key": "requestId", "value": "" },
-    { "key": "technicianId", "value": "" },
-    { "key": "sparePartId", "value": "" },
-    { "key": "siteId", "value": "" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "equipmentId",
+      "value": ""
+    },
+    {
+      "key": "requestId",
+      "value": ""
+    },
+    {
+      "key": "technicianId",
+      "value": "11111111-1111-4111-8111-000000000011"
+    },
+    {
+      "key": "sparePartId",
+      "value": "11111111-1111-4111-8111-000000000031"
+    },
+    {
+      "key": "siteId",
+      "value": "11111111-1111-4111-8111-000000000001"
+    }
   ],
   "item": [
     {
@@ -47,10 +65,15 @@
           "name": "Создать оборудование",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"name\":\"Турбина Северная\",\"type\":\"turbine\",\"serialNumber\":\"SN-100\",\"location\":{\"lat\":55.7,\"lon\":37.6},\"status\":\"operational\",\"installedAt\":\"2024-05-10T00:00:00.000Z\"}"
+              "raw": "{\"name\": \"Турбина Северная\", \"type\": \"turbine\", \"serialNumber\": \"{{serialNumber}}\", \"location\": {\"lat\": 55.7, \"lon\": 37.6}, \"status\": \"operational\", \"installedAt\": \"2024-05-10T00:00:00.000Z\"}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/equipment",
@@ -59,6 +82,15 @@
             }
           },
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var sn = 'SN-PM-' + Date.now();",
+                  "pm.collectionVariables.set('serialNumber', sn);"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -79,8 +111,14 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "equipment"],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             }
           },
@@ -121,8 +159,16 @@
           "name": "Обновить оборудование",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"status\":\"maintenance\"}" },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"maintenance\"}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}",
               "host": ["{{baseUrl}}"],
@@ -186,10 +232,15 @@
           "name": "Дубль серийника 409",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"name\":\"Турбина Двойник\",\"type\":\"turbine\",\"serialNumber\":\"SN-100\",\"location\":{\"lat\":55.7,\"lon\":37.6},\"status\":\"operational\",\"installedAt\":\"2024-05-10T00:00:00.000Z\"}"
+              "raw": "{\"name\": \"Турбина Двойник\", \"type\": \"turbine\", \"serialNumber\": \"{{serialNumber}}\", \"location\": {\"lat\": 55.7, \"lon\": 37.6}, \"status\": \"operational\", \"installedAt\": \"2024-05-10T00:00:00.000Z\"}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/equipment",
@@ -212,8 +263,16 @@
           "name": "Битое тело 422",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"name\":\"12\"}" },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"12\"}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/equipment",
               "host": ["{{baseUrl}}"],
@@ -265,7 +324,12 @@
           "name": "Создать заявку",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"equipmentId\":\"{{equipmentId}}\",\"title\":\"Проверка подшипника\",\"description\":\"Шум при вращении\",\"priority\":\"high\"}"
@@ -297,8 +361,14 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "requests"],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             }
           },
@@ -338,8 +408,16 @@
           "name": "Править заявку",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"priority\":\"critical\"}" },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"priority\":\"critical\"}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/requests/{{requestId}}",
               "host": ["{{baseUrl}}"],
@@ -358,56 +436,15 @@
           ]
         },
         {
-          "name": "Статус в работу",
-          "request": {
-            "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"status\":\"in_progress\"}" },
-            "url": {
-              "raw": "{{baseUrl}}/api/requests/{{requestId}}/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "requests", "{{requestId}}", "status"]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Левый переход 409",
-          "request": {
-            "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"status\":\"new\"}" },
-            "url": {
-              "raw": "{{baseUrl}}/api/requests/{{requestId}}/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "requests", "{{requestId}}", "status"]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Код 409', function () { pm.response.to.have.status(409); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
           "name": "Заявка на чужое оборудование 404",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"equipmentId\":\"00000000-0000-4000-8000-000000000000\",\"title\":\"Проверка чужого узла\",\"priority\":\"low\"}"
@@ -428,48 +465,6 @@
               }
             }
           ]
-        },
-        {
-          "name": "Удалить заявку",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/requests/{{requestId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "requests", "{{requestId}}"]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Код 204', function () { pm.response.to.have.status(204); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Удалить оборудование",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "equipment", "{{equipmentId}}"]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Код 204', function () { pm.response.to.have.status(204); });"
-                ]
-              }
-            }
-          ]
         }
       ]
     },
@@ -480,7 +475,12 @@
           "name": "Назначить бригаду",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"assignees\":[{\"technicianId\":\"{{technicianId}}\",\"role\":\"lead\",\"hours\":2}]}"
@@ -504,10 +504,77 @@
           ]
         },
         {
+          "name": "Статус в работу",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"in_progress\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "status"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Левый переход 409",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"new\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}", "status"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Дубль специалиста 409",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"assignees\":[{\"technicianId\":\"{{technicianId}}\",\"role\":\"lead\",\"hours\":2},{\"technicianId\":\"{{technicianId}}\",\"role\":\"member\",\"hours\":1}]}"
@@ -533,7 +600,12 @@
           "name": "Несуществующий специалист 404",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"assignees\":[{\"technicianId\":\"00000000-0000-4000-8000-000000000000\",\"role\":\"lead\",\"hours\":2}]}"
@@ -559,7 +631,12 @@
           "name": "Бригада без ведущего 422",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"assignees\":[{\"technicianId\":\"{{technicianId}}\",\"role\":\"member\",\"hours\":2}]}"
@@ -750,7 +827,12 @@
               "raw": "{{baseUrl}}/api/reports/equipment-load?minRequests=2",
               "host": ["{{baseUrl}}"],
               "path": ["api", "reports", "equipment-load"],
-              "query": [{ "key": "minRequests", "value": "2" }]
+              "query": [
+                {
+                  "key": "minRequests",
+                  "value": "2"
+                }
+              ]
             }
           },
           "event": [
@@ -774,7 +856,12 @@
           "name": "Списать запчасти",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"parts\":[{\"sparePartId\":\"{{sparePartId}}\",\"qty\":1}]}"
@@ -823,7 +910,12 @@
           "name": "Сверх остатка 409",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"parts\":[{\"sparePartId\":\"{{sparePartId}}\",\"qty\":1000}]}"
@@ -881,7 +973,12 @@
           "name": "Бригада без ведущего 422",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\"assignees\":[{\"technicianId\":\"{{technicianId}}\",\"role\":\"member\",\"hours\":2}]}"
@@ -907,8 +1004,16 @@
           "name": "В работу без бригады 409",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\"status\":\"in_progress\"}" },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"in_progress\"}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/requests/{{requestId}}/status",
               "host": ["{{baseUrl}}"],
@@ -921,6 +1026,53 @@
               "script": {
                 "exec": [
                   "pm.test('Код 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cleanup",
+      "item": [
+        {
+          "name": "Удалить заявку",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{requestId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Удалить оборудование",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/equipment/{{equipmentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "equipment", "{{equipmentId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код 204', function () { pm.response.to.have.status(204); });"
                 ]
               }
             }
