@@ -292,13 +292,4 @@ tests
 
 Каждый PR закрыт self-review по чеклисту: контракт не сломан, миграции катаются туда и обратно, тесты зеленые.
 
-| Номер | Название                                             | Ссылка                                            |
-| ----- | ---------------------------------------------------- | ------------------------------------------------- |
-| 1     | Инфраструктура Postgres: compose, образ, подключение | https://github.com/nikgritenok/atom-case-3/pull/1 |
-| 2     | Миграции схемы с первой по девятую                   | https://github.com/nikgritenok/atom-case-3/pull/2 |
-| 3     | Модели и связи под схему                             | https://github.com/nikgritenok/atom-case-3/pull/3 |
-| 4     | Хранилище на Postgres вместо файлов                  | https://github.com/nikgritenok/atom-case-3/pull/4 |
-| 5     | Бригада, история и запчасти в транзакциях            | https://github.com/nikgritenok/atom-case-3/pull/5 |
-| 6     | Отчеты по площадке и нагрузке                        | https://github.com/nikgritenok/atom-case-3/pull/6 |
-| 7     | Сиды и перенос файловых данных                       | https://github.com/nikgritenok/atom-case-3/pull/7 |
-| 8     | Замеры, тесты и коллекция                            | https://github.com/nikgritenok/atom-case-3/pull/8 |
+Кейс-3 сдан одной веткой `case-3` поверх кейса-2: https://github.com/nikgritenok/atom-case-2/pull/6. Черновые PR по шагам лежат в архиве `atom-case-3` (1–9), итоговая проверка ниже по ним.
