@@ -5,6 +5,8 @@ import { httpLogger } from './middlewares/logger.js';
 import { notFound } from './middlewares/notFound.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { apiLimiter } from './middlewares/rateLimit.js';
+import { metricsMiddleware, metricsHandler } from './middlewares/metrics.js';
+import sequelize from './db/sequelize.js';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.js';
@@ -22,6 +24,7 @@ export function buildApp() {
   app.set('trust proxy', 1);
 
   app.use(httpLogger);
+  app.use(metricsMiddleware);
   app.use(express.json({ limit: config.bodyLimit }));
   app.use(cookieParser());
   app.use(requestId);
@@ -53,9 +56,25 @@ export function buildApp() {
     })
   );
   app.use('/api/auth', authRoutes);
+  app.get('/metrics', metricsHandler);
 
-  app.get('/api/health', (req, res) => {
+  app.get('/api/health/live', (req, res) => {
     res.json({ data: { status: 'ok' } });
+  });
+  app.get('/api/health/ready', async (req, res) => {
+    try {
+      await sequelize.authenticate();
+      res.json({ data: { status: 'ready' } });
+    } catch {
+      res.status(503).json({
+        error: {
+          code: 'NOT_READY',
+          message: 'База данных недоступна',
+          details: [],
+          requestId: req.requestId ?? 'unknown',
+        },
+      });
+    }
   });
 
   app.use('/api', apiLimiter);
