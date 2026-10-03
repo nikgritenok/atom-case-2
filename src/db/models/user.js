@@ -25,6 +25,11 @@ export function initUser(sequelize) {
         allowNull: false,
         defaultValue: 'viewer',
       },
+      technicianId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        field: 'technician_id',
+      },
       refreshTokenHash: {
         type: DataTypes.STRING,
         allowNull: true,
