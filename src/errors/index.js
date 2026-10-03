@@ -28,6 +28,20 @@ export class ConflictError extends Error {
   }
 }
 
+export class UnauthorizedError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'UnauthorizedError';
+  }
+}
+
+export class ForbiddenError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ForbiddenError';
+  }
+}
+
 export class ExternalError extends Error {
   constructor(message) {
     super(message);
