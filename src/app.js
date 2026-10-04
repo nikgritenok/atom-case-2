@@ -5,6 +5,8 @@ import { httpLogger } from './middlewares/logger.js';
 import { notFound } from './middlewares/notFound.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { apiLimiter } from './middlewares/rateLimit.js';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
 import { metricsMiddleware, metricsHandler } from './middlewares/metrics.js';
 import sequelize from './db/sequelize.js';
 import rateLimit from 'express-rate-limit';
@@ -56,6 +58,11 @@ export function buildApp() {
     })
   );
   app.use('/api/auth', authRoutes);
+  app.use(
+    '/api/docs',
+    swaggerUi.serve,
+    swaggerUi.setup(YAML.load('openapi/openapi.yaml'))
+  );
   app.get('/metrics', metricsHandler);
 
   app.get('/api/health/live', (req, res) => {

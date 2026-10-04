@@ -1,0 +1,350 @@
+openapi: 3.0.3
+info:
+  title: Сервис учета заявок на обслуживание оборудования
+  version: 1.0.0
+  description: API справочников, заявок, бригад, отчетов и аутентификации.
+servers:
+  - url: http://localhost:80
+    description: Через nginx в compose
+  - url: http://localhost:3000
+    description: Напрямую к приложению
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, details, requestId]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details: { type: array, items: { type: object } }
+            requestId: { type: string }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        role: { type: string, enum: [viewer, technician, admin] }
+        technicianId: { type: string, format: uuid, nullable: true }
+    Equipment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        type: { type: string, enum: [turbine, inverter, sensor, substation] }
+        serialNumber: { type: string }
+        location:
+          type: object
+          properties:
+            lat: { type: number }
+            lon: { type: number }
+        status:
+          type: string
+          enum: [operational, maintenance, fault, decommissioned]
+        installedAt: { type: string, format: date-time }
+    MaintenanceRequest:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        equipmentId: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        priority: { type: string, enum: [low, medium, high, critical] }
+        status: { type: string, enum: [new, in_progress, done, rejected] }
+        plannedAt: { type: string, format: date-time, nullable: true }
+paths:
+  /api/auth/register:
+    post:
+      summary: Регистрация, роль всегда viewer
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        '201':
+          description: Создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/User' }
+        '409': { description: Дубль email }
+  /api/auth/login:
+    post:
+      summary: Вход, access-токен и refresh-cookie
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: Токены выданы
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user: { $ref: '#/components/schemas/User' }
+                      accessToken: { type: string }
+        '401': { description: Неверный email или пароль }
+        '429': { description: Лимит попыток входа }
+  /api/auth/refresh:
+    post:
+      summary: Обновление access-токена по cookie
+      security: []
+      responses:
+        '200': { description: Токены перевыпущены }
+        '401': { description: Неверный refresh-токен }
+  /api/auth/logout:
+    post:
+      summary: Выход, удаление refresh-cookie
+      security: []
+      responses:
+        '204': { description: Сессия завершена }
+  /api/auth/me:
+    get:
+      summary: Текущий пользователь
+      responses:
+        '200':
+          description: Профиль
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/User' }
+        '401': { description: Нет токена }
+  /api/health/live:
+    get:
+      summary: Liveness
+      security: []
+      responses:
+        '200': { description: Процесс жив }
+  /api/health/ready:
+    get:
+      summary: Readiness с проверкой БД
+      security: []
+      responses:
+        '200': { description: Готов }
+        '503': { description: БД недоступна }
+  /api/equipment:
+    get:
+      summary: Список оборудования, любой auth
+      parameters:
+        - { name: type, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, default: 20 } }
+      responses:
+        '200': { description: Список с meta }
+        '401': { description: Нет токена }
+    post:
+      summary: Создать оборудование, только admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Equipment' }
+      responses:
+        '201': { description: Создано }
+        '403': { description: Нет прав }
+        '409': { description: Дубль серийника }
+  /api/equipment/{id}:
+    get:
+      summary: Карточка оборудования
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Карточка }
+        '404': { description: Не найдено }
+    patch:
+      summary: Обновить оборудование, только admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Обновлено }
+        '403': { description: Нет прав }
+    delete:
+      summary: Удалить оборудование, только admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Удалено }
+        '403': { description: Нет прав }
+  /api/equipment/{id}/requests:
+    get:
+      summary: Заявки по объекту
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Список }
+  /api/equipment/{id}/weather:
+    get:
+      summary: Прогноз и пригодность окна
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Прогноз }
+        '502': { description: Внешний сервис недоступен }
+  /api/requests:
+    get:
+      summary: Список заявок, любой auth
+      responses:
+        '200': { description: Список с meta }
+    post:
+      summary: Создать заявку, technician и admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [equipmentId, title, priority]
+              properties:
+                equipmentId: { type: string, format: uuid }
+                title: { type: string }
+                description: { type: string }
+                priority: { type: string, enum: [low, medium, high, critical] }
+                plannedAt: { type: string, format: date-time }
+      responses:
+        '201': { description: Создана }
+        '403': { description: Нет прав }
+        '404': { description: Оборудование не найдено }
+  /api/requests/{id}:
+    get:
+      summary: Карточка заявки
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Карточка }
+        '404': { description: Не найдена }
+    patch:
+      summary: Править заявку, technician и admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Обновлена }
+        '403': { description: Нет прав }
+    delete:
+      summary: Удалить заявку, только admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Удалена }
+        '403': { description: Нет прав }
+  /api/requests/{id}/status:
+    patch:
+      summary: Сменить статус, technician своих и admin любых
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  { type: string, enum: [new, in_progress, done, rejected] }
+                author: { type: string }
+                comment: { type: string }
+      responses:
+        '200': { description: Статус сменен }
+        '403': { description: Чужая заявка }
+        '409': { description: Переход запрещен }
+  /api/requests/{id}/assignees:
+    post:
+      summary: Назначить бригаду целиком, только admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Бригада назначена }
+        '403': { description: Нет прав }
+        '409': { description: Дубль назначения }
+        '422': { description: Нет ведущего }
+  /api/requests/{id}/assignees/{userId}:
+    delete:
+      summary: Снять специалиста, только admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Снят }
+        '404': { description: Назначение не найдено }
+  /api/requests/{id}/history:
+    get:
+      summary: История статусов
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: История }
+  /api/requests/{id}/parts:
+    get:
+      summary: Запчасти заявки
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Список }
+    post:
+      summary: Добавить запчасти, только admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Добавлены }
+        '403': { description: Нет прав }
+        '409': { description: Превышен остаток }
+  /api/requests/{id}/parts/{partId}:
+    delete:
+      summary: Убрать запчасть, только admin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: partId, in: path, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Убрана }
+  /api/sites/{id}/summary:
+    get:
+      summary: Сводка площадки
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Сводка }
+        '404': { description: Площадка не найдена }
+  /api/reports/equipment-load:
+    get:
+      summary: Нагрузка по оборудованию
+      parameters:
+        - { name: from, in: query, schema: { type: string } }
+        - { name: to, in: query, schema: { type: string } }
+        - { name: minRequests, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Отчет }

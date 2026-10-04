@@ -39,9 +39,9 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/api/health",
+              "raw": "{{baseUrl}}/api/health/live",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "health"]
+              "path": ["api", "health", "live"]
             }
           },
           "event": [
