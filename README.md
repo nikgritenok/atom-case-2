@@ -10,25 +10,26 @@
 - Доступ в интернет для прогноза через Open-Meteo (без него эндпоинт погоды отвечает 502, остальное работает)
 - Порты 3000 (сервис) и 5432 (база) свободны
 
-## Запуск с нуля
-
-### Вариант А, через Docker. Единственный шаг для проверки ментором на любой ОС
-
-`.env` прикладывать не нужно: compose подхватывает дефолты сам, а `env_file` помечен необязательным. Если `.env` есть, его значения используются.
+## Запуск с нуля (кейс 4)
 
 ```bash
+cp .env.example .env
+# вписать JWT_SECRET, при желании SEED_ADMIN_EMAIL/SEED_ADMIN_PASSWORD
 docker compose up --build
 ```
 
-Что происходит при старте контейнера `app`: ждет базу (`scripts/wait-db.js`), накатывает миграции (`sequelize-cli db:migrate`), заливает сиды только на пустую базу (`scripts/seed-if-empty.js`) и стартует сервер. Повторный `up` ничего не дублирует. Сервис доступен на `http://localhost:3000`, база на `localhost:5432`.
+Сервис за nginx на `http://localhost`, Grafana на `http://localhost:3001` (admin/admin по умолчанию через `GRAFANA_USER`/`GRAFANA_PASSWORD`), метрики Prometheus на внутреннем `prometheus:9090`. Приложение и база наружу не торчат. Миграции и сиды накатывает entrypoint при старте, повторный `up` ничего не дублирует.
 
-Остановка с удалением данных:
+Проверка после старта:
 
 ```bash
-docker compose down -v
+curl http://localhost/api/health/ready
+curl -u admin:admin http://localhost/metrics | head
 ```
 
-Без `-v` данные в volume `pgdata` сохраняются между перезапусками.
+### Старый локальный вариант (без compose)
+
+Остался для разработки, подробности ниже. Отличие кейса 4: в compose всё поднимается одной командой, локально нужен свой Postgres и ручные шаги.
 
 ### Вариант Б, локально без Docker. Для разработки
 
@@ -96,6 +97,16 @@ npm run postman:test
 | DB_POOL_MIN          | 2                                           | Нижняя граница пула        |
 | DB_POOL_ACQUIRE_MS   | 30000                                       | Таймаут получения коннекта |
 | DB_POOL_IDLE_MS      | 10000                                       | Простой коннекта до сброса |
+| JWT_SECRET           | secret                                      | Подпись access-токена      |
+| JWT_ACCESS_TTL_SEC   | 900                                         | Жизнь access-токена        |
+| REFRESH_TTL_DAYS     | 7                                           | Жизнь refresh-cookie       |
+| LOGIN_WINDOW_MS      | 900000                                      | Окно лимита входа          |
+| LOGIN_MAX            | 10                                          | Попыток входа в окне       |
+| LOG_LEVEL            | debug                                       | Уровень логов              |
+| SEED_ADMIN_EMAIL     |                                             | Email первого админа       |
+| SEED_ADMIN_PASSWORD  |                                             | Пароль первого админа      |
+| GRAFANA_USER         | admin                                       | Логин Grafana              |
+| GRAFANA_PASSWORD     | admin                                       | Пароль Grafana             |
 
 Локально держите `DB_HOST=localhost` (значение из `.env.example`). В compose `DB_HOST=db` задается через `environment` сервиса `app`, переписывать `.env` под контейнер не нужно. Остальные переменные базы тоже имеют дефолты в compose (`app`/`app`/`maintenance`), поэтому запуск работает вообще без `.env`.
 
@@ -288,7 +299,9 @@ curl -X POST http://localhost:3000/api/equipment \
 
 ## Безопасность
 
-CORS разрешает только источники из CORS_ORIGINS. Для локальной разработки это localhost на 3000 и 5173, звездочки нет. Лимит запросов висит на /api и отдает 429 с заголовками лимита. Тело ограничено через BODY_LIMIT, заголовки закрыты через helmet, служебный заголовок движка выключен. Куки не используем, поэтому флаги SameSite и Secure не применимы. В production стек в ответ не попадает.
+CORS разрешает только источники из CORS_ORIGINS. Лимит запросов висит на /api и отдельный строгий на /api/auth/login (10 попыток за 15 минут), ответ 429. Пароли хранятся bcrypt-хешем с 12 раундами, в ответы и логи не попадают. Access-токен живет 15 минут, refresh едет в cookie с HttpOnly, Secure в проде и SameSite=lax.
+
+Lax выбран чтобы top-level переходы на /api/docs не рвали сессию, а CSRF с чужих сайтов резался. Вход отвечает одинаково при несуществующем пользователе и неверном пароле.
 
 ## Структура проекта
 
@@ -320,3 +333,47 @@ tests
 Каждый PR закрыт self-review по чеклисту: контракт не сломан, миграции катаются туда и обратно, тесты зеленые.
 
 Кейс-3 сдан одной веткой `case-3` поверх кейса-2: https://github.com/nikgritenok/atom-case-2/pull/6. Черновые PR по шагам лежат в архиве `atom-case-3` (1–9), итоговая проверка ниже по ним.
+
+## Роли и доступ (кейс 4)
+
+| Роль       | Права                                                                     |
+| ---------- | ------------------------------------------------------------------------- |
+| viewer     | Чтение справочников, заявок, истории и отчетов                            |
+| technician | Как viewer плюс создание и правка заявок, смена статуса своих назначенных |
+| admin      | Всё, включая оборудование, площадки, бригады и удаление                   |
+
+Без токена 401, без прав 403. Регистрация всегда дает viewer, повышение только через базу или сид админа.
+
+## Мониторинг (кейс 4)
+
+Grafana на `http://localhost:3001`, дашборд Сервис заявок поднимается сам из `deploy/grafana/dashboards/maintenance.json`. Технические панели идут из Prometheus (`http_requests_total`, latency p50/p95, доля 4xx/5xx, uptime), прикладные из Postgres (статусы, приоритеты, среднее закрытие, нагрузка, просроченные). Алерт срабатывает при доле 5xx выше 5% за 5 минут.
+
+Интерактивная документация на `http://localhost/api/docs`, спека в `openapi/openapi.yaml`. Метрики закрыты basic auth на nginx (`admin/admin` из `deploy/nginx/htpasswd`).
+
+## Тесты (кейс 4)
+
+```bash
+npm run test:setup
+npm test
+npm run test:coverage
+```
+
+Модульные лежат в `tests/auth.test.js` (переходы, бригада, матрица ролей), интеграционные там же плюс старые файлы с Bearer-токенами. Тестовый секрет задается только в `npm test`, в проде без `JWT_SECRET` сервер не стартует.
+
+## Runbook
+
+Логи: `docker compose logs app` (JSON в stdout, уровень через `LOG_LEVEL`, Request ID в каждой записи). Метрики: дашборд Grafana плюс `/metrics` за basic.
+
+Упала база: `/api/health/ready` отдает 503, приложение не падает. Смотреть `docker compose logs db`, проверить volume `pgdata`, перезапустить `docker compose restart db`.
+
+Всплеск 5xx: срабатывает алерт доли 5xx, смотреть панель latency и логи с level error, откатить последний деплой через `docker compose down` и подъем на предыдущем образе.
+
+Диск забит: `docker system df`, чистка `docker system prune`, при потере данных поднимать из сидов заново.
+
+Миграции: накат `npm run db:migrate`, полный откат `npm run db:migrate:undo:all`, возврат `npm run db:migrate && npm run db:seed:all`.
+
+## ADR и ограничения
+
+bcryptjs вместо argon2: собирается в alpine без toolchain, 12 раундов достаточно для учебного стенда. SameSite=lax вместо strict: docs открываются top-level переходом без потери сессии. Prometheus отдельным сервисом: Grafana сама не скрейпит /metrics. Refresh ротируется при каждом обновлении, старый токен умирает сразу.
+
+Ограничения: нет HTTPS (бонус не взят), один инстанс приложения (лимитер в памяти), алерт без канала доставки (виден только в Grafana), correlation ID только внутри приложения (nginx пробрасывает X-Request-Id, но не генерирует свой журнал).
