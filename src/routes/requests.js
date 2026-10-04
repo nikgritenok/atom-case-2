@@ -36,6 +36,7 @@ router.delete(
   controller.removeAssignee
 );
 router.use('/:id/parts', partsRouter);
+router.get('/:id/history', validate(idParam, 'params'), controller.getHistory);
 router.get('/:id', validate(idParam, 'params'), controller.getOne);
 router.patch(
   '/:id',
