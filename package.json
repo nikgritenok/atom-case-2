@@ -22,7 +22,8 @@
     "test:coverage": "cross-env NODE_ENV=test JWT_SECRET=test-secret-for-jest NODE_OPTIONS=--experimental-vm-modules jest --runInBand --coverage --collectCoverageFrom='src/**/*.js' tests/api.test.js tests/requests-ext.test.js tests/bonus.test.js tests/auth.test.js",
     "db:migrate:undo:all": "sequelize-cli db:migrate:undo:all",
     "db:seed:all": "sequelize-cli db:seed:all",
-    "db:seed:if-empty": "node scripts/seed-if-empty.js"
+    "db:seed:if-empty": "node scripts/seed-if-empty.js",
+    "load": "k6 run k6/load.js"
   },
   "keywords": [
     "express",
