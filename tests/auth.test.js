@@ -154,3 +154,18 @@ describe('Матрица доступа', () => {
     void techA;
   });
 });
+
+describe('Трассировка', () => {
+  it('возвращает x-request-id', async () => {
+    const res = await request(app).get('/api/health/live').expect(200);
+    expect(res.headers['x-request-id']).toBeDefined();
+  });
+
+  it('эхо переданного X-Request-Id', async () => {
+    const res = await request(app)
+      .get('/api/health/live')
+      .set('X-Request-Id', 'abc-123')
+      .expect(200);
+    expect(res.headers['x-request-id']).toBe('abc-123');
+  });
+});

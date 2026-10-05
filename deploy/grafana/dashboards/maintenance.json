@@ -3,7 +3,7 @@
   "uid": "maintenance",
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "panels": [
     {
       "id": 1,
@@ -181,6 +181,16 @@
         "noDataState": "no_data"
       },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 }
+    },
+    {
+      "id": 13,
+      "title": "Трассировка запросов",
+      "type": "text",
+      "options": {
+        "content": "Request ID: nginx генерирует $request_id, пробрасывает X-Request-Id в app, пишется в логи (requestId) и exemplars histogram. Найти: docker compose logs app | grep requestId.",
+        "mode": "markdown"
+      },
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 48 }
     }
   ]
 }

@@ -1,5 +1,6 @@
 import client from 'prom-client';
 
+client.register.setContentType(client.Registry.OPENMETRICS_CONTENT_TYPE);
 client.collectDefaultMetrics();
 
 export const httpRequestsTotal = new client.Counter({
@@ -12,6 +13,7 @@ export const httpRequestDuration = new client.Histogram({
   name: 'http_request_duration_seconds',
   help: 'Длительность обработки запросов',
   labelNames: ['method', 'route', 'code'],
+  enableExemplars: true,
 });
 
 export const httpErrorsTotal = new client.Counter({
@@ -27,7 +29,10 @@ function routeOf(req) {
 }
 
 export function metricsMiddleware(req, res, next) {
-  const end = httpRequestDuration.startTimer();
+  const end = httpRequestDuration.startTimer(
+    {},
+    { requestId: req.requestId ?? 'unknown' }
+  );
   res.on('finish', () => {
     const labels = {
       method: req.method,
