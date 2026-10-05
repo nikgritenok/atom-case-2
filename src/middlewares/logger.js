@@ -10,6 +10,7 @@ export const logger = pino({
 
 export const httpLogger = pinoHttp({
   logger,
+  customProps: (req) => ({ requestId: req.requestId ?? 'unknown' }),
   customLogLevel(req, res, err) {
     if (res.statusCode >= 500 || err) return 'error';
     if (res.statusCode >= 400) return 'warn';
