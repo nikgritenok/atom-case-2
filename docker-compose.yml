@@ -29,7 +29,7 @@ services:
       DB_NAME: ${DB_NAME:-maintenance}
       DB_USER: ${DB_USER:-app}
       DB_PASSWORD: ${DB_PASSWORD:-app}
-      JWT_SECRET: ${JWT_SECRET:-}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
