@@ -18,6 +18,11 @@ cp .env.example .env
 docker compose up --build
 ```
 
+```
+клиент ---> nginx :80/:443 ---> api :3000 ---> postgres :5432
+                  |-> /metrics (basic)      |-> /metrics ---> prometheus ---> grafana :3001 (provisioning)
+```
+
 Сервис за nginx на `http://localhost`, Grafana на `http://localhost:3001` (admin/admin по умолчанию через `GRAFANA_USER`/`GRAFANA_PASSWORD`), метрики Prometheus на внутреннем `prometheus:9090`. Приложение и база наружу не торчат. Миграции и сиды накатывает entrypoint при старте, повторный `up` ничего не дублирует.
 
 Проверка после старта:
