@@ -26,10 +26,10 @@ export function buildApp() {
   app.set('trust proxy', 1);
 
   app.use(httpLogger);
+  app.use(requestId);
   app.use(metricsMiddleware);
   app.use(express.json({ limit: config.bodyLimit }));
   app.use(cookieParser());
-  app.use(requestId);
   app.use(helmet());
   app.use(
     cors({
