@@ -374,6 +374,18 @@ npm run test:coverage
 
 ## ADR и ограничения
 
-bcryptjs вместо argon2: собирается в alpine без toolchain, 12 раундов достаточно для учебного стенда. SameSite=lax вместо strict: docs открываются top-level переходом без потери сессии. Prometheus отдельным сервисом: Grafana сама не скрейпит /metrics. Refresh ротируется при каждом обновлении, старый токен умирает сразу.
+bcryptjs вместо argon2: собирается в alpine без toolchain, 12 раундов достаточно для учебного стенда. SameSite=lax вместо strict: docs открываются top-level переходом без потери сессии. Prometheus отдельным сервисом: Grafana сама не скрейпит /metrics. Refresh ротируется при каждом обновлении, старый токен умирает сразу. Exemplars requestId в histogram: подтверждено докой prom-client, registry переключён на OpenMetrics. Snakeoil-сертификат в репо только для локального стенда, прод подменяет volume с сертами.
 
-Ограничения: нет HTTPS (бонус не взят), один инстанс приложения (лимитер в памяти), алерт без канала доставки (виден только в Grafana), correlation ID только внутри приложения (nginx пробрасывает X-Request-Id, но не генерирует свой журнал).
+Ограничения: один инстанс приложения (лимитер в памяти), алерт без канала доставки (виден только в Grafana).
+
+## Бонусы
+
+HTTPS: стенд слушает `:443` с самоподписанным сертом из `deploy/nginx/certs/`, `:80` редиректит 301 на https. Заголовки HSTS, X-Frame-Options, CSP, X-Content-Type-Options, Referrer-Policy. `postman:test` ходит напрямую на `:3000` мимо nginx, под https его не переводить.
+
+CI: `.github/workflows/ci.yml` гоняет линтер, тесты на postgres-сервисе и сборку образа на каждый PR.
+
+Кэш: nginx кэширует GET `/api/reports/` и `/api/sites/*/summary` на 30 секунд, ключ включает токен авторизации, статус виден в `X-Cache-Status`. Инвалидация только по TTL.
+
+Трассировка: nginx генерирует `$request_id` и шлёт `X-Request-Id`, приложение возвращает его в ответе, пишет в логи и exemplars histogram. Панель Трассировка в дашборде описывает цепочку.
+
+Нагрузка: `npm run load` (нужен k6), сценарий только чтение, отчёт в `docs/loadtest-report.md`. Перед прогоном поднять `RATE_LIMIT_MAX`, базовый лимит для защиты.
