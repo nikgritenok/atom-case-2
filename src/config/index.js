@@ -16,6 +16,20 @@ export const config = {
     .filter(Boolean),
   rateWindowMs: num(process.env.RATE_LIMIT_WINDOW_MS, 60000),
   rateMax: num(process.env.RATE_LIMIT_MAX, 100),
+  jwtSecret: process.env.JWT_SECRET ?? '',
+  jwtAccessTtlSec: num(process.env.JWT_ACCESS_TTL_SEC, 900),
+  refreshTtlDays: num(process.env.REFRESH_TTL_DAYS, 7),
+  loginWindowMs: num(process.env.LOGIN_WINDOW_MS, 900000),
+  loginMax: num(process.env.LOGIN_MAX, 10),
+  cookieSecure: process.env.COOKIE_SECURE
+    ? process.env.COOKIE_SECURE === 'true'
+    : (process.env.NODE_ENV ?? 'development') === 'production',
+  cookieSameSite: process.env.COOKIE_SAMESITE ?? 'lax',
+  logLevel:
+    process.env.LOG_LEVEL ??
+    (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+  seedAdminEmail: process.env.SEED_ADMIN_EMAIL ?? '',
+  seedAdminPassword: process.env.SEED_ADMIN_PASSWORD ?? '',
   weatherApiUrl:
     process.env.WEATHER_API_URL ?? 'https://api.open-meteo.com/v1/forecast',
   requestTimeoutMs: num(process.env.REQUEST_TIMEOUT_MS, 5000),

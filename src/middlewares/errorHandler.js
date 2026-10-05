@@ -5,6 +5,8 @@ import {
   ValidationError,
   ConflictError,
   ExternalError,
+  UnauthorizedError,
+  ForbiddenError,
 } from '../errors/index.js';
 import { logger } from './logger.js';
 
@@ -31,6 +33,14 @@ export function errorHandler(err, req, res, _next) {
   } else if (err instanceof ConflictError) {
     status = 409;
     code = 'CONFLICT';
+    message = err.message;
+  } else if (err instanceof UnauthorizedError) {
+    status = 401;
+    code = 'UNAUTHENTICATED';
+    message = err.message;
+  } else if (err instanceof ForbiddenError) {
+    status = 403;
+    code = 'FORBIDDEN';
     message = err.message;
   } else if (err instanceof ExternalError) {
     status = 502;

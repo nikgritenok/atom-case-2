@@ -3,14 +3,17 @@ import request from 'supertest';
 import { buildApp } from '../src/app.js';
 import { sequelize, Technician, SparePart } from '../src/db/index.js';
 import { resetDb } from './helpers/db.js';
+import { adminToken } from './helpers/auth.js';
 
 const app = buildApp();
+let admin;
 
 beforeEach(async () => {
   if (process.env.NODE_ENV !== 'test') {
     throw new Error('Тесты требуют NODE_ENV=test для защиты основной базы');
   }
   await resetDb(sequelize);
+  admin = await adminToken(app);
 });
 
 afterAll(async () => {
@@ -31,6 +34,7 @@ function equipmentPayload(serial = 'SN-EXT-1') {
 async function createEquipment(serial) {
   const res = await request(app)
     .post('/api/equipment')
+    .set('Authorization', `Bearer ${admin}`)
     .send(equipmentPayload(serial))
     .expect(201);
   return res.body.data;
@@ -39,6 +43,7 @@ async function createEquipment(serial) {
 async function createRequest(equipmentId, title = 'Проверка узла') {
   const res = await request(app)
     .post('/api/requests')
+    .set('Authorization', `Bearer ${admin}`)
     .send({ equipmentId, title, priority: 'high' })
     .expect(201);
   return res.body.data;
@@ -54,11 +59,15 @@ describe('Бригады и статусы', () => {
     });
     await request(app)
       .post(`/api/requests/${rq.id}/assignees`)
+      .set('Authorization', `Bearer ${admin}`)
       .send({
         assignees: [{ technicianId: tech.id, role: 'member', hours: 2 }],
       })
       .expect(422);
-    const got = await request(app).get(`/api/requests/${rq.id}`).expect(200);
+    const got = await request(app)
+      .get(`/api/requests/${rq.id}`)
+      .set('Authorization', `Bearer ${admin}`)
+      .expect(200);
     expect(got.body.data.assignees).toEqual([]);
   });
 
@@ -67,6 +76,7 @@ describe('Бригады и статусы', () => {
     const rq = await createRequest(eq.id);
     await request(app)
       .patch(`/api/requests/${rq.id}/status`)
+      .set('Authorization', `Bearer ${admin}`)
       .send({ status: 'in_progress' })
       .expect(409);
   });
@@ -80,6 +90,7 @@ describe('Бригады и статусы', () => {
     });
     await request(app)
       .post(`/api/requests/${rq.id}/assignees`)
+      .set('Authorization', `Bearer ${admin}`)
       .send({
         assignees: [
           { technicianId: tech.id, role: 'lead', hours: 2 },
@@ -109,6 +120,7 @@ describe('Запчасти и остатки', () => {
     });
     await request(app)
       .post(`/api/requests/${rq.id}/parts`)
+      .set('Authorization', `Bearer ${admin}`)
       .send({ parts: [{ sparePartId: spare.id, qty: 5 }] })
       .expect(409);
     const after = await SparePart.findByPk(spare.id);

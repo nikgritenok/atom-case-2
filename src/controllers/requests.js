@@ -37,6 +37,7 @@ export const changeStatus = asyncHandler(async (req, res) => {
   const item = await changeRequestStatus(req.params.id, req.body.status, {
     author: req.body.author,
     comment: req.body.comment,
+    user: req.user,
   });
   res.json({ data: item });
 });

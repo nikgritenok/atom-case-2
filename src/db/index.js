@@ -9,6 +9,7 @@ import { initRequestStatusHistory } from './models/requestStatusHistory.js';
 import { initRequestAssignee } from './models/requestAssignee.js';
 import { initSparePart } from './models/sparePart.js';
 import { initRequestSparePart } from './models/requestSparePart.js';
+import { initUser } from './models/user.js';
 
 const Site = initSite(sequelize);
 const Technician = initTechnician(sequelize);
@@ -19,7 +20,7 @@ const RequestStatusHistory = initRequestStatusHistory(sequelize);
 const RequestAssignee = initRequestAssignee(sequelize);
 const SparePart = initSparePart(sequelize);
 const RequestSparePart = initRequestSparePart(sequelize);
-
+const User = initUser(sequelize);
 applyAssociations({
   Site,
   Equipment,
@@ -43,4 +44,5 @@ export {
   RequestAssignee,
   SparePart,
   RequestSparePart,
+  User,
 };

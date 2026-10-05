@@ -8,14 +8,17 @@ import {
   MaintenanceRequest,
 } from '../src/db/index.js';
 import { resetDb } from './helpers/db.js';
+import { adminToken } from './helpers/auth.js';
 
 const app = buildApp();
+let admin;
 
 beforeEach(async () => {
   if (process.env.NODE_ENV !== 'test') {
     throw new Error('Тесты требуют NODE_ENV=test для защиты основной базы');
   }
   await resetDb(sequelize);
+  admin = await adminToken(app);
 });
 
 afterAll(async () => {
@@ -63,13 +66,21 @@ describe('Мягкое удаление оборудования', () => {
   it('удаленная карточка прячется а серийник доступен снова', async () => {
     const created = await request(app)
       .post('/api/equipment')
+      .set('Authorization', `Bearer ${admin}`)
       .send(equipmentPayload('SN-BONUS-DEL'))
       .expect(201);
     const id = created.body.data.id;
-    await request(app).delete(`/api/equipment/${id}`).expect(204);
-    await request(app).get(`/api/equipment/${id}`).expect(404);
+    await request(app)
+      .delete(`/api/equipment/${id}`)
+      .set('Authorization', `Bearer ${admin}`)
+      .expect(204);
+    await request(app)
+      .get(`/api/equipment/${id}`)
+      .set('Authorization', `Bearer ${admin}`)
+      .expect(404);
     await request(app)
       .post('/api/equipment')
+      .set('Authorization', `Bearer ${admin}`)
       .send(equipmentPayload('SN-BONUS-DEL'))
       .expect(201);
   });
@@ -79,14 +90,17 @@ describe('Поиск оборудования', () => {
   it('находит по подстроке и отсекает чужое', async () => {
     await request(app)
       .post('/api/equipment')
+      .set('Authorization', `Bearer ${admin}`)
       .send({ ...equipmentPayload('SN-BONUS-S1'), name: 'Турбина Поисковая' })
       .expect(201);
     await request(app)
       .post('/api/equipment')
+      .set('Authorization', `Bearer ${admin}`)
       .send({ ...equipmentPayload('SN-BONUS-S2'), name: 'Датчик Обычный' })
       .expect(201);
     const res = await request(app)
       .get(`/api/equipment?search=${encodeURIComponent('Поисковая')}`)
+      .set('Authorization', `Bearer ${admin}`)
       .expect(200);
     const names = res.body.data.map((item) => item.name);
     expect(names).toContain('Турбина Поисковая');
@@ -107,6 +121,7 @@ describe('Отчет по загрузке', () => {
     await createRequestRow(idle.id, 'Проверка третьего узла');
     const res = await request(app)
       .get('/api/reports/equipment-load?minRequests=2')
+      .set('Authorization', `Bearer ${admin}`)
       .expect(200);
     const ids = res.body.data.map((item) => item.equipmentId);
     expect(ids).toContain(busy.id);
@@ -125,6 +140,7 @@ describe('Сводка площадки', () => {
     await createRequestRow(eq.id, 'Заявка третья готова', 'done');
     const res = await request(app)
       .get(`/api/sites/${site.id}/summary`)
+      .set('Authorization', `Bearer ${admin}`)
       .expect(200);
     const byStatus = res.body.data.byStatus;
     const sum =

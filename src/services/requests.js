@@ -19,6 +19,7 @@ import {
   ConflictError,
   ValidationError,
   BadRequestError,
+  ForbiddenError,
 } from '../errors/index.js';
 import { config } from '../config/index.js';
 
@@ -112,9 +113,23 @@ export async function updateRequestService(id, patch) {
   return updateRequest(id, safe);
 }
 
-export async function changeRequestStatus(id, next, { author, comment } = {}) {
+export async function changeRequestStatus(
+  id,
+  next,
+  { author, comment, user } = {}
+) {
   const current = await findRequestById(id);
   if (!current) throw new NotFoundError('Заявка не найдена');
+  if (user?.role === 'technician') {
+    const assigned = user.technicianId
+      ? await RequestAssignee.count({
+          where: { requestId: id, technicianId: user.technicianId },
+        })
+      : 0;
+    if (assigned === 0) {
+      throw new ForbiddenError('Можно менять статус только своих заявок');
+    }
+  }
   const allowed = TRANSITIONS[current.status] ?? [];
   if (!allowed.includes(next)) {
     throw new ConflictError(`Переход из ${current.status} в ${next} запрещен`);

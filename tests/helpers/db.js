@@ -2,6 +2,7 @@ export async function resetDb(sequelize) {
   await sequelize.query(
     'DROP TRIGGER IF EXISTS history_no_change ON request_status_history'
   );
+  await sequelize.query('DELETE FROM users');
   await sequelize.query('DELETE FROM request_spare_parts');
   await sequelize.query('DELETE FROM request_assignees');
   await sequelize.query('DELETE FROM request_status_history');

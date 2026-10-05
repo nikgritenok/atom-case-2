@@ -5,14 +5,16 @@ import { logger } from './middlewares/logger.js';
 
 const app = buildApp();
 
-async function closeDatabase() {
-  await sequelize.close();
-}
+const server = app.listen(config.port, () => {
+  logger.info(`Сервер запущен на порту ${config.port}`);
+});
 
 for (const signal of ['SIGTERM', 'SIGINT']) {
-  process.on(signal, async () => {
-    await closeDatabase();
-    process.exit(0);
+  process.on(signal, () => {
+    server.close(async () => {
+      await sequelize.close();
+      process.exit(0);
+    });
   });
 }
 
@@ -24,7 +26,7 @@ try {
   );
   process.exit(1);
 }
-
-app.listen(config.port, () => {
-  logger.info(`Сервер запущен на порту ${config.port}`);
-});
+if (!config.jwtSecret) {
+  logger.error('JWT_SECRET не задан');
+  process.exit(1);
+}

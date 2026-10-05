@@ -1,6 +1,25 @@
 {
   "name": "Локальное окружение",
   "values": [
-    { "enabled": true, "key": "baseUrl", "value": "http://localhost:3000" }
+    {
+      "enabled": true,
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "enabled": true,
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "enabled": true,
+      "key": "adminEmail",
+      "value": "admin@test.ru"
+    },
+    {
+      "enabled": true,
+      "key": "adminPassword",
+      "value": "password123"
+    }
   ]
 }
