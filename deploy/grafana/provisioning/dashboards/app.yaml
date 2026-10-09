@@ -4,5 +4,6 @@ providers:
   - name: maintenance
     folder: ''
     type: file
+    updateIntervalSeconds: 10
     options:
       path: /etc/grafana/dashboards
