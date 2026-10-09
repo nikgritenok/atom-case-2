@@ -4,6 +4,8 @@ info:
   version: 1.0.0
   description: API справочников, заявок, бригад, отчетов и аутентификации.
 servers:
+  - url: https://193.233.85.147:8444
+    description: Стенд на VPS
   - url: http://localhost:80
     description: Через nginx в compose
   - url: http://localhost:3000
