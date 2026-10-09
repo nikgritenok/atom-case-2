@@ -3,7 +3,7 @@
   "uid": "maintenance",
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 3,
+  "version": 4,
   "panels": [
     {
       "id": 1,
@@ -148,7 +148,8 @@
           "datasource": {
             "type": "postgres",
             "uid": "P44368ADAD746BC27"
-          }
+          },
+          "format": "table"
         }
       ],
       "gridPos": {
@@ -172,7 +173,8 @@
           "datasource": {
             "type": "postgres",
             "uid": "P44368ADAD746BC27"
-          }
+          },
+          "format": "table"
         }
       ],
       "gridPos": {
@@ -196,7 +198,8 @@
           "datasource": {
             "type": "postgres",
             "uid": "P44368ADAD746BC27"
-          }
+          },
+          "format": "table"
         }
       ],
       "gridPos": {
@@ -220,7 +223,8 @@
           "datasource": {
             "type": "postgres",
             "uid": "P44368ADAD746BC27"
-          }
+          },
+          "format": "table"
         }
       ],
       "gridPos": {
@@ -244,7 +248,8 @@
           "datasource": {
             "type": "postgres",
             "uid": "P44368ADAD746BC27"
-          }
+          },
+          "format": "table"
         }
       ],
       "gridPos": {
