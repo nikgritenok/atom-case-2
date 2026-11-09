@@ -17,7 +17,7 @@ Create a unit:
 ```bash
 curl -X POST http://localhost:3000/api/equipment \
   -H "Content-Type: application/json" \
-  -d '{"name":"North turbine","type":"turbine","serialNumber":"SN-100","location":{"lat":55.7,"lon":37.6},"status":"operational","installedAt":"2024-05-10T00:00:00.000Z"}'
+  -d '{"name":"North turbine","type":"turbine","serialNumber":"SN-100"}'
 ```
 
 A duplicate serial number answers 409, and every failure uses the same envelope:
