@@ -1,8 +1,48 @@
-# Сервис учета заявок на обслуживание оборудования
+# Equipment maintenance requests
+
+A service that keeps a catalog of production equipment and the requests to maintain it. A request moves through a lifecycle, every status change is written to a history table, and the weather at the site is shown before anyone schedules outdoor work.
+
+The brief was a test case: request lifecycle plus the weather check. The rest came from wanting it to behave like a real service, so there are migrations that run on start, roles, metrics, a runbook and CI.
+
+## Stack
+
+Node.js 22, Express, Sequelize, PostgreSQL 16, nginx, Prometheus, Grafana, Jest, k6, Docker Compose, GitHub Actions.
+
+## Run
+
+```bash
+cp .env.example .env        # JWT_SECRET is required; SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD optional
+docker compose up --build
+```
+
+- app: http://localhost
+- Grafana: http://localhost:3001 (admin/admin unless you set `GRAFANA_USER` / `GRAFANA_PASSWORD`)
+- health: `curl http://localhost/api/health/ready`
+- metrics: `curl -u admin:admin http://localhost/metrics`
+
+Migrations and seeds run in the container entrypoint. A second `up` does not duplicate data.
+
+## Tests
+
+```bash
+npm run test:setup   # test database plus migrations
+npm test             # five Jest suites: api, requests, bonus, auth, weather
+npm run load         # k6 profile used for the numbers in the report
+```
+
+## What the Russian docs below cover
+
+Endpoints, data model, reports, search and soft delete, migration rollback, `EXPLAIN` output, the error envelope, weather integration, roles, monitoring, runbook and the ADRs.
+
+---
+
+# Документация на русском
+
+## Сервис учета заявок на обслуживание оборудования
 
 Сервис ведет справочник оборудования производственной площадки и заявки на его обслуживание. Контролирует жизненный цикл заявки и показывает погоду на объекте перед наружными работами. Данные хранятся в Postgres 16, доступ идет через Sequelize.
 
-## Требования
+### Требования
 
 - Node.js 22 и выше (`node --version`), npm
 - Docker Desktop / OrbStack / Docker Engine с `docker compose` (рекомендуемый путь, база поднимается сама)
@@ -10,7 +50,7 @@
 - Доступ в интернет для прогноза через Open-Meteo (без него эндпоинт погоды отвечает 502, остальное работает)
 - Порты 3000 (сервис) и 5432 (база) свободны
 
-## Запуск с нуля (кейс 4)
+### Запуск с нуля (кейс 4)
 
 ```bash
 cp .env.example .env
@@ -32,11 +72,11 @@ curl http://localhost/api/health/ready
 curl -u admin:admin http://localhost/metrics | head
 ```
 
-### Старый локальный вариант (без compose)
+#### Старый локальный вариант (без compose)
 
 Остался для разработки, подробности ниже. Отличие кейса 4: в compose всё поднимается одной командой, локально нужен свой Postgres и ручные шаги.
 
-### Вариант Б, локально без Docker. Для разработки
+#### Вариант Б, локально без Docker. Для разработки
 
 Нужен Postgres 16 рядом. Дальше команды одинаковые на macOS, Linux и Windows (PowerShell), отличается только установка и старт Postgres.
 
@@ -66,7 +106,7 @@ npm run dev
 
 Назначение шагов: `db:wait` ждет готовности базы, `db:migrate` накатывает схему в `DB_NAME`, `db:seed:all` заливает демоданные, `db:import` переносит остатки старого файлового хранилища, если файл еще лежит в `data/db.json` (на чистой базе без старого файла импорт молча пропускается). Тестовая база `DB_NAME_TEST` готовится отдельно командой `npm run test:setup`, запускать `db:migrate`/`db:seed:all` под тесты руками не нужно.
 
-### Проверка после запуска
+#### Проверка после запуска
 
 ```bash
 curl http://localhost:3000/api/health
@@ -78,7 +118,7 @@ npm run postman:test
 
 Если `curl` висит или отвечает отказом в соединении: проверьте, что контейнер `app` в статусе Up (`docker compose ps`), и смотрите логи `docker compose logs app`. Если порт 3000 занят, остановите локальный `npm run dev` или другой сервис на этом порту.
 
-## Переменные окружения
+### Переменные окружения
 
 | Переменная           | Пример                                      | Назначение                 |
 | -------------------- | ------------------------------------------- | -------------------------- |
@@ -117,7 +157,7 @@ npm run postman:test
 
 Про права: в проде приложение ходит пользователем `app` без права менять схему. Миграции гоняет владелец базы, у приложения только чтение и запись данных.
 
-## Эндпоинты
+### Эндпоинты
 
 | Метод  | Путь                                | Назначение                 |
 | ------ | ----------------------------------- | -------------------------- |
@@ -146,7 +186,7 @@ npm run postman:test
 
 Списки принимают фильтры, сортировку и пагинацию. Ответ списка содержит данные и мету total, page и limit. Параметр `search` ограничен 100 символами, лишнее режется валидатором.
 
-## Модель данных
+### Модель данных
 
 Оборудование: id, name от 3 до 100 символов, type turbine/inverter/sensor/substation, уникальный serialNumber, location с lat и lon, status operational/maintenance/fault/decommissioned, installedAt не в будущем. Плюс привязка к площадке `site_id`, мягкое удаление через `deleted_at`.
 
@@ -183,7 +223,7 @@ maintenance_requests N:M spare_parts через request_spare_parts
 
 История статусов неизменяема: триггер `history_no_change` режет любой UPDATE и DELETE с ошибкой `История статусов неизменяема`.
 
-## Отчеты
+### Отчеты
 
 Сводка по площадке `GET /api/sites/:id/summary` считает один запрос: сколько заявок всего, расклад по статусам и приоритетам, средний срок закрытия в часах. Нет площадки, будет 404.
 
@@ -225,13 +265,13 @@ maintenance_requests N:M spare_parts через request_spare_parts
 
 Оба отчета собраны параметризованными запросами через `replacements`, конкатенации ввода в SQL нет.
 
-## Поиск и мягкое удаление
+### Поиск и мягкое удаление
 
 Поиск идет через `ILIKE %needle%`: по оборудованию ищет `name`, по заявкам `title` и `description`. Под него стоят GIN-индексы с `pg_trgm` (`idx_equipment_name_trgm`, `idx_requests_title_trgm`), подстрока находится даже в середине слова. Спецсимволы `%` и `_` экранируются.
 
 Удаление мягкое: `deleted_at`, строка остается в таблице и выпадает из выборок. Уникальность серийника частичная (`uq_equipment_serial_active` только по живым строкам), поэтому серийник удаленной единицы можно переиспользовать. Обычный `DELETE /api/equipment/:id` ставит метку, повторный вызов по тому же id даст 404.
 
-## Откат миграций
+### Откат миграций
 
 Полный откат схемы:
 
@@ -248,7 +288,7 @@ npm run db:seed:all
 
 Откат снимает все девять миграций в обратном порядке, включая снятие триггера истории, типов ENUM и расширения `pg_trgm`. Данные при этом стираются, сиды заливают демонабор заново.
 
-## EXPLAIN
+### EXPLAIN
 
 Три запроса прогнали через `EXPLAIN (ANALYZE, BUFFERS)` до и после девятой миграции. Выводы лежат в `docs/explain/before` и `docs/explain/after`. Общая картина: последовательные проходы сменились индексными.
 
@@ -260,7 +300,7 @@ npm run db:seed:all
 
 Файлы: `docs/explain/before/equipment-search.txt`, `docs/explain/before/requests-status-priority.txt`, `docs/explain/before/history-by-request.txt` и те же имена в `docs/explain/after/`.
 
-## Формат ошибки
+### Формат ошибки
 
 ```json
 {
@@ -273,7 +313,7 @@ npm run db:seed:all
 }
 ```
 
-## Примеры
+### Примеры
 
 Создание оборудования:
 
@@ -298,17 +338,17 @@ curl -X POST http://localhost:3000/api/equipment \
 
 Битое тело дает 422 со списком полей.
 
-## Погода
+### Погода
 
 Эндпоинт берет координаты оборудования и запрашивает Open-Meteo через модуль из первого кейса. Возвращает осадки и ветер на два дня плюс признак suitable. Окно пригодно если осадки не выше PRECIP_THRESHOLD_MM и ветер не выше WIND_THRESHOLD_MS. Если внешний сервис лег, вернется 502 с понятным текстом.
 
-## Безопасность
+### Безопасность
 
 CORS разрешает только источники из CORS_ORIGINS. Лимит запросов висит на /api и отдельный строгий на /api/auth/login (10 попыток за 15 минут), ответ 429. Пароли хранятся bcrypt-хешем с 12 раундами, в ответы и логи не попадают. Access-токен живет 15 минут, refresh едет в cookie с HttpOnly, Secure в проде и SameSite=lax.
 
 Lax выбран чтобы top-level переходы на /api/docs не рвали сессию, а CSRF с чужих сайтов резался. Вход отвечает одинаково при несуществующем пользователе и неверном пароле.
 
-## Структура проекта
+### Структура проекта
 
 ```
 src/app.js
@@ -333,13 +373,13 @@ tests
 
 Слои идут по цепочке маршруты в контроллеры в сервисы в репозитории. Бизнес правила живут в сервисах, работа с базой только в репозиториях и моделях. Сырой SQL встречается только в двух отчетах, везде с `replacements`.
 
-## Pull Request
+### Pull Request
 
 Каждый PR закрыт self-review по чеклисту: контракт не сломан, миграции катаются туда и обратно, тесты зеленые.
 
 Кейс-3 сдан одной веткой `case-3` поверх кейса-2: https://github.com/nikgritenok/atom-case-2/pull/6. Черновые PR по шагам лежат в архиве `atom-case-3` (1–9), итоговая проверка ниже по ним.
 
-## Роли и доступ (кейс 4)
+### Роли и доступ (кейс 4)
 
 | Роль       | Права                                                                     |
 | ---------- | ------------------------------------------------------------------------- |
@@ -349,13 +389,13 @@ tests
 
 Без токена 401, без прав 403. Регистрация всегда дает viewer, повышение только через базу или сид админа.
 
-## Мониторинг (кейс 4)
+### Мониторинг (кейс 4)
 
 Grafana на `http://localhost:3001`, дашборд Сервис заявок поднимается сам из `deploy/grafana/dashboards/maintenance.json`. Технические панели идут из Prometheus (`http_requests_total`, latency p50/p95, доля 4xx/5xx, uptime), прикладные из Postgres (статусы, приоритеты, среднее закрытие, нагрузка, просроченные). Алерт срабатывает при доле 5xx выше 5% за 5 минут.
 
 Интерактивная документация на `http://localhost/api/docs`, спека в `openapi/openapi.yaml`. Метрики закрыты basic auth на nginx (`admin/admin` из `deploy/nginx/htpasswd`).
 
-## Тесты (кейс 4)
+### Тесты (кейс 4)
 
 ```bash
 npm run test:setup
@@ -365,7 +405,7 @@ npm run test:coverage
 
 Модульные лежат в `tests/auth.test.js` (переходы, бригада, матрица ролей), интеграционные там же плюс старые файлы с Bearer-токенами. Тестовый секрет задается только в `npm test`, в проде без `JWT_SECRET` сервер не стартует.
 
-## Runbook
+### Runbook
 
 Логи: `docker compose logs app` (JSON в stdout, уровень через `LOG_LEVEL`, Request ID в каждой записи). Метрики: дашборд Grafana плюс `/metrics` за basic.
 
@@ -377,13 +417,13 @@ npm run test:coverage
 
 Миграции: накат `npm run db:migrate`, полный откат `npm run db:migrate:undo:all`, возврат `npm run db:migrate && npm run db:seed:all`.
 
-## ADR и ограничения
+### ADR и ограничения
 
 bcryptjs вместо argon2: собирается в alpine без toolchain, 12 раундов достаточно для учебного стенда. SameSite=lax вместо strict: docs открываются top-level переходом без потери сессии. Prometheus отдельным сервисом: Grafana сама не скрейпит /metrics. Refresh ротируется при каждом обновлении, старый токен умирает сразу. Exemplars requestId в histogram: подтверждено докой prom-client, registry переключён на OpenMetrics. Snakeoil-сертификат в репо только для локального стенда, прод подменяет volume с сертами.
 
 Ограничения: один инстанс приложения (лимитер в памяти), алерт без канала доставки (виден только в Grafana).
 
-## Бонусы
+### Бонусы
 
 HTTPS: стенд слушает `:443` с самоподписанным сертом из `deploy/nginx/certs/`, `:80` редиректит 301 на https. Заголовки HSTS, X-Frame-Options, CSP, X-Content-Type-Options, Referrer-Policy. `postman:test` ходит напрямую на `:3000` мимо nginx, под https его не переводить.
 
