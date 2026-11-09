@@ -108,4 +108,4 @@ Branches, pull requests, review. Keep the test suite green before opening a PR.
 
 ## License
 
-No license yet. Ask before reusing the code.
+MIT, see [LICENSE](LICENSE).
